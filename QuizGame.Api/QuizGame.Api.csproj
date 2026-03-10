@@ -31,4 +31,9 @@
     <Folder Include="Repositories\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\QuizGame.Core\QuizGame.Core.csproj" />
+    <ProjectReference Include="..\QuizGame.Infrastructure\QuizGame.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
