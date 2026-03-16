@@ -1,5 +1,12 @@
-﻿using QuizGame.Core.Interfaces;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using QuizGame.Core.Entities;
+using QuizGame.Core.Interfaces;
 using QuizGame.Core.Models;
+using QuizGame.Infrastructure.Data;
+using QuizGame.Infrastructure.Services;
 
 namespace QuizGame.Tests;
 
@@ -11,7 +18,33 @@ public class AuthServiceTests
     [TestInitialize]
     public void Setup()
     {
-        // We'll wire this up next
+        var dbContext = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options);
+
+        var userStore = new UserStore<ApplicationUser>(dbContext);
+        var userManager = new UserManager<ApplicationUser>(
+            userStore,
+            null!, // IOptions<IdentityOptions>
+            new PasswordHasher<ApplicationUser>(),
+            null!, // IUserValidators
+            null!, // IPasswordValidators
+            null!, // ILookupNormalizer
+            null!, // IdentityErrorDescriber
+            null!, // IServiceProvider
+            null! // ILogger
+        );
+
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "Jwt:Secret", "supersecretkey1234567890abcdefghij" },
+                { "Jwt:Issuer", "QuizGame" },
+                { "Jwt:Audience", "QuizGameUsers" }
+            })
+            .Build();
+
+        _authService = new AuthService(userManager, config);
     }
 
     [TestMethod]
