@@ -1,0 +1,8 @@
+﻿namespace QuizGame.Core.Models;
+
+public class AuthResults
+{
+    public bool Succeeded { get; set; }
+    public string? Token { get; set; }
+    public IEnumerable<string> Errors { get; set; } = [];
+}
