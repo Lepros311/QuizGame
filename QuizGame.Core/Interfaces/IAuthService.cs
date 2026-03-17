@@ -4,5 +4,7 @@ namespace QuizGame.Core.Interfaces;
 
 public interface IAuthService
 {
-    Task<AuthResults> RegisterAsync(RegisterRequest request);
+    Task<AuthResult> RegisterAsync(RegisterRequest request);
+
+    Task<AuthResult> LoginAsync(LoginRequest request);
 }

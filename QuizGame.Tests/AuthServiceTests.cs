@@ -123,4 +123,76 @@ public class AuthServiceTests
         Assert.IsFalse(result.Succeeded);
         Assert.IsTrue(result.Errors.Any());
     }
+
+    [TestMethod]
+    public async Task Login_WithValidCredentials_ReturnsJwtToken()
+    {
+        // Arrange
+        var registerRequest = new RegisterRequest
+        {
+            Username = "loginuser",
+            Email = "login@example.com",
+            Password = "Password123!"
+        };
+
+        await _authService.RegisterAsync(registerRequest);
+
+        var loginRequest = new LoginRequest
+        {
+            Email = "login@example.com",
+            Password = "Password123!"
+        };
+
+        // Act
+        var result = await _authService.LoginAsync(loginRequest);
+
+        // Assert
+        Assert.IsTrue(result.Succeeded);
+        Assert.IsNotNull(result.Token);
+    }
+
+    [TestMethod]
+    public async Task Login_WithWrongPassword_ReturnsFailure()
+    {
+        // Arrange
+        var registerRequest = new RegisterRequest
+        {
+            Username = "wrongpassuser",
+            Email = "wrongpass@example.com",
+            Password = "Password123!"
+        };
+
+        await _authService.RegisterAsync(registerRequest);
+
+        var loginRequest = new LoginRequest
+        {
+            Email = "wrongpass@example.com",
+            Password = "WrongPassword123!"
+        };
+
+        // Act
+        var result = await _authService.LoginAsync(loginRequest);
+
+        // Assert
+        Assert.IsFalse(result.Succeeded);
+        Assert.IsTrue(result.Errors.Any());
+    }
+
+    [TestMethod]
+    public async Task Login_WithNonExistentEmail_ReturnsFailure()
+    {
+        // Arrange
+        var loginRequest = new LoginRequest
+        {
+            Email = "nobody@example.com",
+            Password = "Password123!"
+        };
+
+        // Act
+        var result = await _authService.LoginAsync(loginRequest);
+
+        // Assert
+        Assert.IsFalse(result.Succeeded);
+        Assert.IsTrue(result.Errors.Any());
+    }
 }

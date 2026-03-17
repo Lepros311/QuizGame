@@ -21,7 +21,7 @@ public class AuthService : IAuthService
         _configuration = configuration;
     }
 
-    public async Task<AuthResults> RegisterAsync(RegisterRequest request)
+    public async Task<AuthResult> RegisterAsync(RegisterRequest request)
     {
         var user = new ApplicationUser
         {
@@ -34,7 +34,7 @@ public class AuthService : IAuthService
 
         if (!result.Succeeded)
         {
-            return new AuthResults
+            return new AuthResult
             {
                 Succeeded = false,
                 Errors = result.Errors.Select(e => e.Description)
@@ -43,7 +43,7 @@ public class AuthService : IAuthService
 
         var token = GenerateJwtToken(user);
 
-        return new AuthResults
+        return new AuthResult
         {
             Succeeded = true,
             Token = token
@@ -71,5 +71,34 @@ public class AuthService : IAuthService
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public async Task<AuthResult> LoginAsync(LoginRequest request)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+
+        if (user == null)
+        {
+            return new AuthResult
+            {
+                Succeeded = false,
+                Errors = ["Invalid email or password."]
+            };
+        }
+
+        var passwordValid = await _userManager.CheckPasswordAsync(user, request.Password);
+
+        if (!passwordValid)
+        {
+            return new AuthResult
+            {
+                Succeeded = false,
+                Errors = ["Invalid email or password"]
+            };
+        }
+
+        var token = GenerateJwtToken(user);
+
+        return new AuthResult { Succeeded = true, Token = token };
     }
 }

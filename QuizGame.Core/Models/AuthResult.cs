@@ -1,6 +1,6 @@
 ﻿namespace QuizGame.Core.Models;
 
-public class AuthResults
+public class AuthResult
 {
     public bool Succeeded { get; set; }
     public string? Token { get; set; }
