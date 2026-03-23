@@ -10,11 +10,13 @@ public class QuizService : IQuizService
 {
     private readonly AppDbContext _context;
     private readonly IQuestionGeneratorService _questionGenerator;
+    private readonly IAnswerGraderService _answerGrader;
 
-    public QuizService(AppDbContext context, IQuestionGeneratorService questionGenerator)
+    public QuizService(AppDbContext context, IQuestionGeneratorService questionGenerator, IAnswerGraderService answerGrader)
     {
         _context = context;
         _questionGenerator = questionGenerator;
+        _answerGrader = answerGrader;
     }
 
     public async Task<Quiz> CreateQuizAsync(string userId, int categoryId, Difficulty difficulty, int questionCount, List<QuestionType> questionTypes, bool isMultiplayer)
@@ -58,6 +60,46 @@ public class QuizService : IQuizService
 
     public async Task<Quiz> SubmitAnswersAsync(int quizId, Dictionary<int, string> answers)
     {
-        throw new NotImplementedException();
+        var quiz = await _context.Quizzes
+            .Include(q => q.Questions)
+            .FirstOrDefaultAsync(q => q.Id == quizId);
+
+        if (quiz == null)
+        {
+            throw new ArgumentException("Quiz not found.", nameof(quizId));
+        }
+
+        var score = 0;
+
+        foreach (var question in quiz.Questions)
+        {
+            if (!answers.TryGetValue(question.Id, out var userAnswer))
+            {
+                continue;
+            }
+
+            question.UserAnswer = userAnswer;
+
+            if (question.QuestionType == QuestionType.ShortAnswer)
+            {
+                question.IsCorrect = await _answerGrader.GradeShortAnswerAsync(question, userAnswer);
+            }
+            else
+            {
+                question.IsCorrect = string.Equals(userAnswer, question.CorrectAnswer, StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (question.IsCorrect == true)
+            {
+                score++;
+            }
+        }
+
+        quiz.Score = score;
+        quiz.CompletedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return quiz;
     }
 }
