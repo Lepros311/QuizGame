@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using QuizGame.Core.Entities;
+using QuizGame.Core.Enums;
+using System.Text.Json;
 
 namespace QuizGame.Infrastructure.Data;
 
@@ -11,4 +13,25 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<Category> Categories { get; set; }
+    public DbSet<Quiz> Quizzes { get; set; }
+    public DbSet<Question> Questions { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.Entity<Quiz>()
+            .Property(q => q.QuestionTypes)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null!),
+                v => JsonSerializer.Deserialize<List<QuestionType>>(v, (JsonSerializerOptions)null!)!
+            );
+
+        builder.Entity<Question>()
+            .Property(q => q.Options)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null!),
+                v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null!)!
+            );
+    }
 }
