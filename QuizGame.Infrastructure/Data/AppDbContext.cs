@@ -15,6 +15,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Category> Categories { get; set; }
     public DbSet<Quiz> Quizzes { get; set; }
     public DbSet<Question> Questions { get; set; }
+    public DbSet<Challenge> Challenges { get; set; }
+    public DbSet<ChallengeParticipant> ChallengeParticipants { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
