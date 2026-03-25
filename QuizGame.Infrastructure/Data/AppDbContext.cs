@@ -17,6 +17,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Question> Questions { get; set; }
     public DbSet<Challenge> Challenges { get; set; }
     public DbSet<ChallengeParticipant> ChallengeParticipants { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
