@@ -21,6 +21,11 @@ public class QuizService : IQuizService
 
     public async Task<Quiz> CreateQuizAsync(string userId, int categoryId, Difficulty difficulty, int questionCount, List<QuestionType> questionTypes, bool isMultiplayer)
     {
+        if (questionCount < 10 || questionCount > 50)
+        {
+            throw new ArgumentException("Question count must be between 10 and 50.", nameof(questionCount));
+        }
+
         var category = await _context.Categories.FindAsync(categoryId);
 
         if (category == null)

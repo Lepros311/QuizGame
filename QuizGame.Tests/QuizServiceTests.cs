@@ -30,20 +30,16 @@ public class QuizServiceTests
                 It.IsAny<List<QuestionType>>()))
             .ReturnsAsync(new List<Question>
             {
-                new Question
-                {
-                    Text = "What is 2 + 2?",
-                    QuestionType = QuestionType.MultipleChoice,
-                    Options = ["1", "2", "3", "4"],
-                    CorrectAnswer = "4"
-                },
-                new Question
-                {
-                    Text = "The Earth is flat.",
-                    QuestionType = QuestionType.TrueFalse,
-                    Options = [],
-                    CorrectAnswer = "false"
-                }
+                new Question { Text = "Q1", QuestionType = QuestionType.MultipleChoice, Options = ["1", "2", "3", "4"], CorrectAnswer = "4" },
+                new Question { Text = "Q2", QuestionType = QuestionType.TrueFalse, Options = [], CorrectAnswer = "false" },
+                new Question { Text = "Q3", QuestionType = QuestionType.MultipleChoice, Options = ["1", "2", "3", "4"], CorrectAnswer = "4" },
+                new Question { Text = "Q4", QuestionType = QuestionType.TrueFalse, Options = [], CorrectAnswer = "false" },
+                new Question { Text = "Q5", QuestionType = QuestionType.MultipleChoice, Options = ["1", "2", "3", "4"], CorrectAnswer = "4" },
+                new Question { Text = "Q6", QuestionType = QuestionType.TrueFalse, Options = [], CorrectAnswer = "false" },
+                new Question { Text = "Q7", QuestionType = QuestionType.MultipleChoice, Options = ["1", "2", "3", "4"], CorrectAnswer = "4" },
+                new Question { Text = "Q8", QuestionType = QuestionType.TrueFalse, Options = [], CorrectAnswer = "false" },
+                new Question { Text = "Q9", QuestionType = QuestionType.MultipleChoice, Options = ["1", "2", "3", "4"], CorrectAnswer = "4" },
+                new Question { Text = "Q10", QuestionType = QuestionType.TrueFalse, Options = [], CorrectAnswer = "false" },
             });
 
         var services = new ServiceCollection();
@@ -72,7 +68,7 @@ public class QuizServiceTests
         var userId = Guid.NewGuid().ToString();
         var categoryId = 1;
         var difficulty = Difficulty.Medium;
-        var questionCount = 2;
+        var questionCount = 10;
         var questionTypes = new List<QuestionType> { QuestionType.MultipleChoice, QuestionType.TrueFalse };
 
         // Act
@@ -81,7 +77,7 @@ public class QuizServiceTests
         // Assert
         Assert.IsNotNull(quiz);
         Assert.AreEqual(userId, quiz.UserId);
-        Assert.AreEqual(2, quiz.Questions.Count);
+        Assert.AreEqual(10, quiz.Questions.Count);
         Assert.IsTrue(quiz.Id > 0);
     }
 
@@ -98,7 +94,41 @@ public class QuizServiceTests
                 userId,
                 invalidCategoryId,
                 Difficulty.Medium,
-                2,
+                10,
+                new List<QuestionType> { QuestionType.MultipleChoice },
+                false));
+    }
+
+    [TestMethod]
+    public async Task CreateQuiz_WithQuestionCountBelowMinimum_ThrowsException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+
+        // Act & Assert
+        await Assert.ThrowsExceptionAsync<ArgumentException>(() =>
+            _quizService.CreateQuizAsync(
+                userId,
+                1,
+                Difficulty.Medium,
+                5,
+                new List<QuestionType> { QuestionType.MultipleChoice },
+                false));
+    }
+
+    [TestMethod]
+    public async Task CreateQuiz_WithQuestionCountAboveMaximum_ThrowsException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+
+        // Act & Assert
+        await Assert.ThrowsExceptionAsync<ArgumentException>(() =>
+            _quizService.CreateQuizAsync(
+                userId,
+                1,
+                Difficulty.Medium,
+                51,
                 new List<QuestionType> { QuestionType.MultipleChoice },
                 false));
     }
@@ -112,7 +142,7 @@ public class QuizServiceTests
             userId,
             1,
             Difficulty.Medium,
-            2,
+            10,
             new List<QuestionType> { QuestionType.MultipleChoice },
             false);
 
@@ -122,7 +152,7 @@ public class QuizServiceTests
         // Assert
         Assert.IsNotNull(quiz);
         Assert.AreEqual(createdQuiz.Id, quiz.Id);
-        Assert.AreEqual(2, quiz.Questions.Count);
+        Assert.AreEqual(10, quiz.Questions.Count);
     }
 
     [TestMethod]
@@ -147,7 +177,7 @@ public class QuizServiceTests
             userId,
             1,
             Difficulty.Medium,
-            2,
+            10,
             new List<QuestionType> { QuestionType.MultipleChoice, QuestionType.TrueFalse },
             false);
 
@@ -162,7 +192,7 @@ public class QuizServiceTests
         Assert.IsNotNull(result);
         Assert.AreEqual(2, result.Score);
         Assert.IsNotNull(result.CompletedAt);
-        Assert.IsTrue(result.Questions.All(q => q.IsCorrect == true));
+        Assert.IsTrue(result.Questions.Where(q => q.UserAnswer != null).All(q => q.IsCorrect == true));
     }
 
     [TestMethod]
@@ -174,7 +204,7 @@ public class QuizServiceTests
             userId,
             1,
             Difficulty.Medium,
-            2,
+            10,
             new List<QuestionType> { QuestionType.MultipleChoice, QuestionType.TrueFalse },
             false);
 
@@ -187,7 +217,7 @@ public class QuizServiceTests
 
         // Assert
         Assert.AreEqual(0, result.Score);
-        Assert.IsTrue(result.Questions.All(q => q.IsCorrect == false));
+        Assert.IsTrue(result.Questions.Where(q => q.UserAnswer != null).All(q => q.IsCorrect == false));
     }
 
     [TestMethod]
@@ -220,7 +250,7 @@ public class QuizServiceTests
             userId,
             1,
             Difficulty.Medium,
-            1,
+            10,
             new List<QuestionType> { QuestionType.ShortAnswer },
             false);
 

@@ -34,13 +34,16 @@ public class ChallengeServiceTests
                 It.IsAny<List<QuestionType>>()))
             .ReturnsAsync(new List<Question>
             {
-                new Question
-                {
-                    Text = "What is 2 + 2?",
-                    QuestionType = QuestionType.MultipleChoice,
-                    Options = ["1", "2", "3", "4"],
-                    CorrectAnswer = "4"
-                }
+                new Question { Text = "Q1", QuestionType = QuestionType.MultipleChoice, Options = ["1", "2", "3", "4"], CorrectAnswer = "4" },
+                new Question { Text = "Q2", QuestionType = QuestionType.TrueFalse, Options = [], CorrectAnswer = "false" },
+                new Question { Text = "Q3", QuestionType = QuestionType.MultipleChoice, Options = ["1", "2", "3", "4"], CorrectAnswer = "4" },
+                new Question { Text = "Q4", QuestionType = QuestionType.TrueFalse, Options = [], CorrectAnswer = "false" },
+                new Question { Text = "Q5", QuestionType = QuestionType.MultipleChoice, Options = ["1", "2", "3", "4"], CorrectAnswer = "4" },
+                new Question { Text = "Q6", QuestionType = QuestionType.TrueFalse, Options = [], CorrectAnswer = "false" },
+                new Question { Text = "Q7", QuestionType = QuestionType.MultipleChoice, Options = ["1", "2", "3", "4"], CorrectAnswer = "4" },
+                new Question { Text = "Q8", QuestionType = QuestionType.TrueFalse, Options = [], CorrectAnswer = "false" },
+                new Question { Text = "Q9", QuestionType = QuestionType.MultipleChoice, Options = ["1", "2", "3", "4"], CorrectAnswer = "4" },
+                new Question { Text = "Q10", QuestionType = QuestionType.TrueFalse, Options = [], CorrectAnswer = "false" },
             });
 
         var services = new ServiceCollection();
@@ -84,7 +87,7 @@ public class ChallengeServiceTests
             _challengerId,
             1,
             Difficulty.Medium,
-            1,
+            10,
             new List<QuestionType> { QuestionType.MultipleChoice },
             opponentIds);
 
@@ -107,7 +110,7 @@ public class ChallengeServiceTests
             _challengerId,
             1,
             Difficulty.Medium,
-            1,
+            10,
             new List<QuestionType> { QuestionType.MultipleChoice },
             opponentIds);
 
@@ -130,7 +133,7 @@ public class ChallengeServiceTests
                 _challengerId,
                 1,
                 Difficulty.Medium,
-                1,
+                10,
                 new List<QuestionType> { QuestionType.MultipleChoice },
                 opponentIds));
     }
@@ -143,7 +146,7 @@ public class ChallengeServiceTests
             _challengerId,
             1,
             Difficulty.Medium,
-            1,
+            10,
             new List<QuestionType> { QuestionType.MultipleChoice },
             new List<string> { _opponentId });
 
@@ -164,7 +167,7 @@ public class ChallengeServiceTests
             _challengerId,
             1,
             Difficulty.Medium,
-            1,
+            10,
             new List<QuestionType> { QuestionType.MultipleChoice },
             new List<string> { _opponentId });
 
@@ -185,7 +188,7 @@ public class ChallengeServiceTests
             _challengerId,
             1,
             Difficulty.Medium,
-            1,
+            10,
             new List<QuestionType> { QuestionType.MultipleChoice },
             new List<string> { _opponentId });
 
@@ -216,7 +219,7 @@ public class ChallengeServiceTests
             _challengerId,
             1,
             Difficulty.Medium,
-            1,
+            10,
             new List<QuestionType> { QuestionType.MultipleChoice },
             new List<string> { _opponentId });
 
@@ -247,7 +250,7 @@ public class ChallengeServiceTests
             _challengerId,
             1,
             Difficulty.Medium,
-            1,
+            10,
             new List<QuestionType> { QuestionType.MultipleChoice },
             new List<string> { _opponentId });
 
@@ -276,7 +279,7 @@ public class ChallengeServiceTests
             _challengerId,
             1,
             Difficulty.Medium,
-            1,
+            10,
             new List<QuestionType> { QuestionType.MultipleChoice },
             new List<string> { _opponentId });
 
@@ -284,7 +287,7 @@ public class ChallengeServiceTests
             _opponentId,
             1,
             Difficulty.Hard,
-            1,
+            10,
             new List<QuestionType> { QuestionType.TrueFalse },
             new List<string> { _challengerId });
 
