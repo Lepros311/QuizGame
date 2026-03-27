@@ -18,6 +18,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Challenge> Challenges { get; set; }
     public DbSet<ChallengeParticipant> ChallengeParticipants { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<StatBoard> StatBoards { get; set; }
+    public DbSet<UserStatBoard> UserStatBoards { get; set; }
+    public DbSet<UserFollow> UserFollows { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -36,5 +39,17 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null!),
                 v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null!)!
             );
+
+        builder.Entity<UserFollow>()
+            .HasOne(f => f.Follower)
+            .WithMany()
+            .HasForeignKey(f => f.FollowerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<UserFollow>()
+            .HasOne(f => f.Following)
+            .WithMany()
+            .HasForeignKey(f => f.FollowingId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
