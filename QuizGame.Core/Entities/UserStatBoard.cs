@@ -5,8 +5,6 @@ public class UserStatBoard
     public int Id { get; set; }
     public string UserId { get; set; } = string.Empty;
     public ApplicationUser User { get; set; } = null!;
-    public int StatBoardId { get; set; }
-    public StatBoard StatBoard { get; set; } = null!;
 
     // Performance
     public int TotalQuizzesCompleted { get; set; }
