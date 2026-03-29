@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using QuizGame.Core;
 using QuizGame.Core.Entities;
 using QuizGame.Core.Enums;
 using QuizGame.Core.Interfaces;
@@ -21,9 +22,9 @@ public class QuizService : IQuizService
 
     public async Task<Quiz> CreateQuizAsync(string userId, int categoryId, Difficulty difficulty, int questionCount, List<QuestionType> questionTypes, bool isMultiplayer)
     {
-        if (questionCount < 10 || questionCount > 50)
+        if (questionCount < GameConstants.MinQuestionCount || questionCount > GameConstants.MaxQuestionCount)
         {
-            throw new ArgumentException("Question count must be between 10 and 50.", nameof(questionCount));
+            throw new ArgumentException($"Question count must be between {GameConstants.MinQuestionCount} and {GameConstants.MaxQuestionCount}.", nameof(questionCount));
         }
 
         var category = await _context.Categories.FindAsync(categoryId);
