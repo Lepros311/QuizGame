@@ -31,5 +31,8 @@ public class UserStatBoard
     public string BestCategory { get; set; } = string.Empty;
     public string MostPlayedCategory { get; set; } = string.Empty;
 
+    // Skill
+    public double SkillScore { get; set; }
+
     public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 }

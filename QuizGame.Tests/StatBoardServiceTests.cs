@@ -203,4 +203,41 @@ public class StatBoardServiceTests
         Assert.AreEqual(11, stats.TotalQuizzesCompleted); // was 10, now 11
         Assert.IsTrue(stats.TotalCorrectAnswers > 0);
     }
+
+    [TestMethod]
+    public async Task UpdateUserStats_AfterQuizCompleted_UpdatesSkillScore()
+    {
+        // Arrange
+        var category = new Category { Id = 1, Name = "Science", Description = "Science questions" };
+        _dbContext.Categories.Add(category);
+
+        var quiz = new Quiz
+        {
+            UserId = _userId1,
+            CategoryId = 1,
+            Difficulty = Core.Enums.Difficulty.Medium,
+            QuestionCount = 10,
+            QuestionTypes = [Core.Enums.QuestionType.MultipleChoice],
+            IsMultiplayer = false,
+            Score = 9,
+            StartedAt = DateTime.UtcNow.AddMinutes(-5),
+            CompletedAt = DateTime.UtcNow,
+            Questions = new List<Question>
+        {
+            new Question { Text = "Q1", QuestionType = Core.Enums.QuestionType.MultipleChoice, CorrectAnswer = "A", UserAnswer = "A", IsCorrect = true, Options = [] },
+            new Question { Text = "Q2", QuestionType = Core.Enums.QuestionType.MultipleChoice, CorrectAnswer = "B", UserAnswer = "B", IsCorrect = true, Options = [] },
+            new Question { Text = "Q3", QuestionType = Core.Enums.QuestionType.MultipleChoice, CorrectAnswer = "C", UserAnswer = "D", IsCorrect = false, Options = [] },
+        }
+        };
+
+        _dbContext.Quizzes.Add(quiz);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        await _statBoardService.UpdateUserStatsAsync(_userId1, quiz.Id);
+
+        // Assert
+        var stats = await _statBoardService.GetUserStatsAsync(_userId1);
+        Assert.IsTrue(stats.SkillScore > 0);
+    }
 }

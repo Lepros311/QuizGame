@@ -18,4 +18,5 @@ public class Quiz
     public DateTime? StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public int Score { get; set; }
+    public int WinThresholdUsed { get; set; } = GameConstants.WinThresholdPercentage;
 }
