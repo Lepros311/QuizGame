@@ -16,7 +16,7 @@ public class CategoryService : ICategoryService
 
     public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
     {
-        return await _context.Categories.ToListAsync();
+        return await _context.Categories.OrderBy(c => c.Name).ToListAsync();
     }
 
     public async Task<Category> CreateCategoryAsync(string name, string description)

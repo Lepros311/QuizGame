@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using QuizGame.Core;
 using QuizGame.Core.Entities;
 using QuizGame.Core.Enums;
 using System.Text.Json;
@@ -56,5 +57,26 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<UserDifficultyStats>()
             .HasIndex(u => new { u.UserId, u.Difficulty })
             .IsUnique();
+
+        builder.Entity<Category>().HasData(
+            new Category { Id = 1, Name = "Art", Description = "Questions about art" },
+            new Category { Id = 2, Name = "Geography", Description = "Questions about geography" },
+            new Category { Id = 3, Name = "History", Description = "Questions about history" },
+            new Category { Id = 4, Name = "Literature", Description = "Questions about literature" },
+            new Category { Id = 5, Name = "Mathematics", Description = "Questions about mathematics" },
+            new Category { Id = 6, Name = "Movies & TV", Description = "Questions about movies and TV" },
+            new Category { Id = 7, Name = "Music", Description = "Questions about music" },
+            new Category { Id = 8, Name = "Science", Description = "Questions about science" },
+            new Category { Id = 9, Name = "Sports", Description = "Questions about sports" },
+            new Category { Id = 10, Name = "Technology", Description = "Questions about technology" }
+        );
+
+        builder.Entity<StatBoard>().HasData(
+            new StatBoard { Id = 1, Name = StatBoardConstants.TopScores, Description = "Users with the highest scores" },
+            new StatBoard { Id = 2, Name = StatBoardConstants.WinStreaks, Description = "Users with the longest win streaks" },
+            new StatBoard { Id = 3, Name = StatBoardConstants.FastestCompletions, Description = "Users with the fastest quiz completions" },
+            new StatBoard { Id = 4, Name = StatBoardConstants.MostChallengesWon, Description = "Users with the most challenge wins" },
+            new StatBoard { Id = 5, Name = StatBoardConstants.MostQuizzesCompleted, Description = "Users who have completed the most quizzes" }
+        );
     }
 }
