@@ -36,9 +36,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 v => JsonSerializer.Deserialize<List<QuestionType>>(v, (JsonSerializerOptions)null!)!
             )
             .Metadata.SetValueComparer(new ValueComparer<List<QuestionType>>(
-                (c1, c2) => c1!.SequenceEqual(c2!),
-                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                c => c.ToList()
+                (list1, list2) => list1!.SequenceEqual(list2!),
+                list => list.Aggregate(0, (hashCode, item) => HashCode.Combine(hashCode, item.GetHashCode())),
+                list => list.ToList()
             ));
 
         builder.Entity<Question>()
@@ -48,9 +48,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null!)!
             )
             .Metadata.SetValueComparer(new ValueComparer<List<string>>(
-                (c1, c2) => c1!.SequenceEqual(c2!),
-                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                c => c.ToList()
+                (list1, list2) => list1!.SequenceEqual(list2!),
+                list => list.Aggregate(0, (hashCode, item) => HashCode.Combine(hashCode, item.GetHashCode())),
+                list => list.ToList()
             ));
 
         builder.Entity<UserFollow>()
@@ -68,6 +68,30 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<UserDifficultyStats>()
             .HasIndex(u => new { u.UserId, u.Difficulty })
             .IsUnique();
+
+        builder.Entity<Challenge>()
+            .HasOne(c => c.Challenger)
+            .WithMany()
+            .HasForeignKey(c => c.ChallengerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Challenge>()
+            .HasOne(c => c.Quiz)
+            .WithMany()
+            .HasForeignKey(c => c.QuizId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<ChallengeParticipant>()
+            .HasOne(cp => cp.User)
+            .WithMany()
+            .HasForeignKey(cp => cp.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Quiz>()
+            .HasOne(q => q.User)
+            .WithMany()
+            .HasForeignKey(q => q.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<Category>().HasData(
             new Category { Id = 1, Name = "Art", Description = "Questions about art" },

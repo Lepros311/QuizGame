@@ -754,13 +754,13 @@ namespace QuizGame.Infrastructure.Migrations
                     b.HasOne("QuizGame.Core.Entities.ApplicationUser", "Challenger")
                         .WithMany()
                         .HasForeignKey("ChallengerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("QuizGame.Core.Entities.Quiz", "Quiz")
                         .WithMany()
                         .HasForeignKey("QuizId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Challenger");
@@ -779,7 +779,7 @@ namespace QuizGame.Infrastructure.Migrations
                     b.HasOne("QuizGame.Core.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Challenge");
@@ -826,7 +826,7 @@ namespace QuizGame.Infrastructure.Migrations
                     b.HasOne("QuizGame.Core.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
