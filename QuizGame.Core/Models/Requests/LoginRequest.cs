@@ -1,4 +1,4 @@
-﻿namespace QuizGame.Core.Models;
+﻿namespace QuizGame.Core.Models.Requests;
 
 public class LoginRequest
 {

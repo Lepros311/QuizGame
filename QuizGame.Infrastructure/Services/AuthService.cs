@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using QuizGame.Core.Entities;
 using QuizGame.Core.Interfaces;
 using QuizGame.Core.Models;
+using QuizGame.Core.Models.Requests;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;

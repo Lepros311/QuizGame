@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using QuizGame.Core.Entities;
 using QuizGame.Core.Interfaces;
-using QuizGame.Core.Models;
+using QuizGame.Core.Models.Requests;
 using QuizGame.Infrastructure.Data;
 using QuizGame.Infrastructure.Services;
 

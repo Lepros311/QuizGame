@@ -1,4 +1,5 @@
 ﻿using QuizGame.Core.Models;
+using QuizGame.Core.Models.Requests;
 
 namespace QuizGame.Core.Interfaces;
 
