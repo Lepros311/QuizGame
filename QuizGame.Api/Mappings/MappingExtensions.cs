@@ -11,7 +11,6 @@ public static class MappingExtensions
         {
             Id = user.Id,
             Username = user.UserName!,
-            Email = user.Email!,
             CreatedAt = user.CreatedAt,
             FollowersCount = followersCount,
             FollowingCount = followingCount

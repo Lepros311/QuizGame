@@ -9,4 +9,5 @@ public interface IUserService
     Task<IEnumerable<ApplicationUser>> SearchUsersAsync(string query);
     Task<IEnumerable<ApplicationUser>> GetSuggestedMatchesAsync(string userId);
     Task<UserProfileResponse> GetUserProfileAsync(string userId);
+    Task<PublicUserProfileResponse> GetPublicUserProfileAsync(string userId);
 }

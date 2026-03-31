@@ -44,32 +44,77 @@ public class UserService : IUserService
 
     public async Task<UserProfileResponse> GetUserProfileAsync(string userId)
     {
+        var data = await GetUserDataAsync(userId);
+
+        return new UserProfileResponse
+        {
+            UserId = data.User.Id,
+            Username = data.User.UserName!,
+            Email = data.User.Email!,
+            MemberSince = data.User.CreatedAt,
+            FollowersCount = data.FollowersCount,
+            FollowingCount = data.FollowingCount,
+            SkillScore = (int)Math.Round(data.Stats?.SkillScore ?? 0),
+            Stats = data.Stats,
+            DifficultyStats = data.DifficultyStats
+        };
+    }
+
+    public async Task<PublicUserProfileResponse> GetPublicUserProfileAsync(string userId)
+    {
+        var data = await GetUserDataAsync(userId);
+
+        return new PublicUserProfileResponse
+        {
+            UserId = data.User.Id,
+            Username = data.User.UserName!,
+            MemberSince = data.User.CreatedAt,
+            FollowersCount = data.FollowersCount,
+            FollowingCount = data.FollowingCount,
+            SkillScore = (int)Math.Round(data.Stats?.SkillScore ?? 0),
+            Stats = data.Stats,
+            DifficultyStats = data.DifficultyStats
+        };
+    }
+
+    private async Task<UserData> GetUserDataAsync(string userId)
+    {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user == null)
         {
-            throw new ArgumentException("User now found.", nameof(userId));
+            throw new ArgumentException("User not found.", nameof(userId));
         }
 
-        var stats = await _context.UserStatBoards.FirstOrDefaultAsync(s => s.UserId == userId);
+        var stats = await _context.UserStatBoards
+            .FirstOrDefaultAsync(u => u.UserId == userId);
 
-        var difficultyStats = await _context.UserDifficultyStats.Where(d => d.UserId == userId).ToListAsync();
+        var difficultyStats = await _context.UserDifficultyStats
+            .Where(d => d.UserId == userId)
+            .ToListAsync();
 
-        var followersCount = await _context.UserFollows.CountAsync(f => f.FollowingId == userId);
+        var followersCount = await _context.UserFollows
+            .CountAsync(f => f.FollowingId == userId);
 
-        var followingCount = await _context.UserFollows.CountAsync(f => f.FollowerId == userId);
+        var followingCount = await _context.UserFollows
+            .CountAsync(f => f.FollowerId == userId);
 
-        return new UserProfileResponse
+        return new UserData
         {
-            UserId = user.Id,
-            Username = user.UserName!,
-            Email = user.Email!,
-            MemberSince = user.CreatedAt,
-            FollowersCount = followersCount,
-            FollowingCount = followingCount,
-            SkillScore = (int)Math.Round(stats?.SkillScore ?? 0),
+            User = user,
             Stats = stats,
-            DifficultyStats = difficultyStats
+            DifficultyStats = difficultyStats,
+            FollowersCount = followersCount,
+            FollowingCount = followingCount
         };
+    }
+
+    private class UserData
+    {
+        public ApplicationUser User { get; set; } = null!;
+        public UserStatBoard? Stats { get; set; }
+        public List<UserDifficultyStats> DifficultyStats { get; set; } = [];
+        public int FollowersCount { get; set; }
+        public int FollowingCount { get; set; }
     }
 }

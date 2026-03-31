@@ -40,7 +40,7 @@ public class UserController : ControllerBase
     {
         try
         {
-            var profile = await _userService.GetUserProfileAsync(id);
+            var profile = await _userService.GetPublicUserProfileAsync(id);
             return Ok(profile);
         }
         catch (ArgumentException ex)
