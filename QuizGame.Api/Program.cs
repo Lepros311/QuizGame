@@ -71,6 +71,7 @@ builder.Services.AddScoped<IUserFollowService, UserFollowService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IQuizConfigurationService, QuizConfigurationService>();
 builder.Services.AddScoped<IAdminSeederService, AdminSeederService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Gemini HTTP clients
 builder.Services.AddHttpClient<IQuestionGeneratorService, GeminiQuestionGeneratorService>();
