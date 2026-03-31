@@ -1,8 +1,10 @@
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using QuizGame.API;
 using QuizGame.Core.Entities;
 using QuizGame.Core.Interfaces;
 using QuizGame.Infrastructure.Data;
@@ -77,6 +79,15 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHttpClient<IQuestionGeneratorService, GeminiQuestionGeneratorService>();
 builder.Services.AddHttpClient<IAnswerGraderService, GeminiAnswerGraderService>();
 
+// Hangfire
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHangfireServer();
+
 // Controllers
 builder.Services.AddControllers();
 
@@ -124,6 +135,28 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Hangfire Dashboard (admin only)
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new HangfireAuthorizationFilter()]
+});
+
+// Schedule recurring jobs
+RecurringJob.AddOrUpdate<IQuizCleanupService>(
+    "send-abandoned-quiz-reminders",
+    service => service.SendAbandonedQuizRemindersAsync(),
+    Cron.Hourly);
+
+RecurringJob.AddOrUpdate<IQuizCleanupService>(
+    "delete-abandoned-quizzes",
+    service => service.DeleteAbandonedQuizzesAsync(),
+    Cron.Daily);
+
+RecurringJob.AddOrUpdate<IQuizCleanupService>(
+    "delete-expired-completed-quizzes",
+    service => service.DeleteExpiredCompletedQuizzesAsync(),
+    Cron.Monthly);
 
 // Seed admin user on startup
 using (var scope = app.Services.CreateScope())
