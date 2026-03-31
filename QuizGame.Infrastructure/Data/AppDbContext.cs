@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using QuizGame.Core;
@@ -92,6 +93,15 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(q => q.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<IdentityRole>().HasData(
+            new IdentityRole
+            {
+                Id = "1",
+                Name = "Admin",
+                NormalizedName = "ADMIN"
+            }
+        );
 
         builder.Entity<Category>().HasData(
             new Category { Id = 1, Name = "Art", Description = "Questions about art" },

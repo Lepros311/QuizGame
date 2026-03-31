@@ -70,6 +70,7 @@ builder.Services.AddScoped<IStatBoardService, StatBoardService>();
 builder.Services.AddScoped<IUserFollowService, UserFollowService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IQuizConfigurationService, QuizConfigurationService>();
+builder.Services.AddScoped<IAdminSeederService, AdminSeederService>();
 
 // Gemini HTTP clients
 builder.Services.AddHttpClient<IQuestionGeneratorService, GeminiQuestionGeneratorService>();
@@ -122,5 +123,12 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Seed admin user on startup
+using (var scope = app.Services.CreateScope())
+{
+    var adminSeeder = scope.ServiceProvider.GetRequiredService<IAdminSeederService>();
+    await adminSeeder.SeedAdminAsync();
+}
 
 app.Run();
