@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using QuizGame.Core.Entities;
 using QuizGame.Core.Interfaces;
 using QuizGame.Infrastructure.Data;
@@ -11,17 +12,21 @@ namespace QuizGame.Tests;
 public class NotificationServiceTests
 {
     private INotificationService _notificationService = null!;
+    private Mock<IEmailService> _mockEmailService = null!;
     private string _userId = null!;
 
     [TestInitialize]
     public async Task Setup()
     {
+        _mockEmailService = new Mock<IEmailService>();
+
         var services = new ServiceCollection();
 
         services.AddDbContext<AppDbContext>(options =>
             options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
         services.AddLogging();
+        services.AddSingleton(_mockEmailService.Object);
         services.AddScoped<INotificationService, NotificationService>();
 
         var provider = services.BuildServiceProvider();

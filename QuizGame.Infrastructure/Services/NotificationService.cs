@@ -8,10 +8,12 @@ namespace QuizGame.Infrastructure.Services;
 public class NotificationService : INotificationService
 {
     private readonly AppDbContext _context;
+    private readonly IEmailService _emailService;
 
-    public NotificationService(AppDbContext context)
+    public NotificationService(AppDbContext context, IEmailService emailService)
     {
         _context = context;
+        _emailService = emailService;
     }
 
     public async Task NotifyUserAsync(string userId, string message)
@@ -39,6 +41,13 @@ public class NotificationService : INotificationService
 
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync();
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user?.Email != null)
+        {
+            await _emailService.SendChallengeNotificationAsync(user.Email, challengerName, challengeId);
+        }
     }
 
     public async Task<IEnumerable<Notification>> GetUserNotificationsAsync(string userId)
