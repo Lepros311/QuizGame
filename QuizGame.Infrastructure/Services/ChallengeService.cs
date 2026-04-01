@@ -50,6 +50,27 @@ public class ChallengeService : IChallengeService
         _context.Challenges.Add(challenge);
         await _context.SaveChangesAsync();
 
+        var challengerStats = await _context.UserStatBoards
+            .FirstOrDefaultAsync(u => u.UserId == challengerId);
+
+        if (challengerStats != null)
+        {
+            challengerStats.TotalChallengesSent++;
+        }
+
+        foreach (var opponentId in opponentIds)
+        {
+            var opponentStats = await _context.UserStatBoards
+                .FirstOrDefaultAsync(u => u.UserId == opponentId);
+
+            if (opponentStats != null)
+            {
+                opponentStats.TotalChallengesReceived++;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
         foreach (var opponentId in opponentIds)
         {
             await _notificationService.NotifyChallengeReceivedAsync(opponentId, challenge.Id, challengerId);
@@ -167,6 +188,43 @@ public class ChallengeService : IChallengeService
         {
             challenge.Status = ChallengeStatus.Completed;
             challenge.CompletedAt = DateTime.UtcNow;
+
+            var winnerScore = challenge.Participants.Max(p => p.Score ?? 0);
+            var challengerStats = await _context.UserStatBoards
+                .FirstOrDefaultAsync(u => u.UserId == challenge.ChallengerId);
+
+            if (challengerStats != null)
+            {
+                var challengerParticipant = challenge.Participants
+                    .FirstOrDefault(p => p.UserId == challenge.ChallengerId);
+
+                if (challengerParticipant?.Score == winnerScore)
+                {
+                    challengerStats.TotalChallengesWon++;
+                }
+                else
+                {
+                    challengerStats.TotalChallengesLost++;
+                }
+            }
+
+            foreach (var completedParticipant in challenge.Participants)
+            {
+                var participantStats = await _context.UserStatBoards
+                    .FirstOrDefaultAsync(u => u.UserId == completedParticipant.UserId);
+
+                if (participantStats != null)
+                {
+                    if (completedParticipant.Score == winnerScore)
+                    {
+                        participantStats.TotalChallengesWon++;
+                    }
+                    else
+                    {
+                        participantStats.TotalChallengesLost++;
+                    }
+                }
+            }
         }
 
         await _context.SaveChangesAsync();

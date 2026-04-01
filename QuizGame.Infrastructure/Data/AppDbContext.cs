@@ -25,6 +25,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<UserStatBoard> UserStatBoards { get; set; }
     public DbSet<UserFollow> UserFollows { get; set; }
     public DbSet<UserDifficultyStats> UserDifficultyStats { get; set; }
+    public DbSet<UserCategoryStats> UserCategoryStats { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -68,6 +69,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         builder.Entity<UserDifficultyStats>()
             .HasIndex(u => new { u.UserId, u.Difficulty })
+            .IsUnique();
+
+        builder.Entity<UserCategoryStats>()
+            .HasIndex(u => new { u.UserId, u.CategoryId })
             .IsUnique();
 
         builder.Entity<Challenge>()

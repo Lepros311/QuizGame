@@ -67,7 +67,8 @@ public class StatBoardService : IStatBoardService
 
         UpdatePerformanceStats(stats, quiz, scorePercentage);
         UpdateSpeedStats(stats, quiz);
-        UpdateCategoryStats(stats, quiz);
+        await UpdateCategoryStatsAsync(userId, quiz, scorePercentage);
+        await UpdateCategoryStatsSummaryAsync(stats, userId);
         UpdateStreakStats(stats, scorePercentage);
 
         await UpdateDifficultyStatsAsync(userId, quiz, scorePercentage);
@@ -179,11 +180,51 @@ public class StatBoardService : IStatBoardService
             : (stats.AverageCompletionSeconds + completionSeconds) / 2;
     }
 
-    private static void UpdateCategoryStats(UserStatBoard stats, Quiz quiz)
+    private async Task UpdateCategoryStatsAsync(string userId, Quiz quiz, double scorePercentage)
     {
-        if (quiz.Category != null)
+        if (quiz.Category == null)
         {
-            stats.MostPlayedCategory = quiz.Category.Name;
+            return;
+        }
+
+        var categoryStats = await _context.UserCategoryStats
+            .FirstOrDefaultAsync(c => c.UserId == userId && c.CategoryId == quiz.CategoryId);
+
+        if (categoryStats == null)
+        {
+            categoryStats = new UserCategoryStats
+            {
+                UserId = userId,
+                CategoryId = quiz.CategoryId
+            };
+            _context.UserCategoryStats.Add(categoryStats);
+        }
+
+        categoryStats.TotalQuizzes++;
+        categoryStats.AverageScorePercentage = categoryStats.AverageScorePercentage == 0
+            ? scorePercentage
+            : (categoryStats.AverageScorePercentage + scorePercentage) / 2;
+        categoryStats.LastPlayed = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task UpdateCategoryStatsSummaryAsync(UserStatBoard stats, string userId)
+    {
+        var allCategoryStats = await _context.UserCategoryStats
+            .Include(c => c.Category)
+            .Where(c => c.UserId == userId)
+            .ToListAsync();
+
+        if (allCategoryStats.Any())
+        {
+            stats.MostPlayedCategory = allCategoryStats
+                .OrderByDescending(c => c.TotalQuizzes)
+                .First().Category.Name;
+
+            stats.BestCategory = allCategoryStats
+                .OrderByDescending(c => c.AverageScorePercentage)
+                .First().Category.Name;
         }
     }
 
