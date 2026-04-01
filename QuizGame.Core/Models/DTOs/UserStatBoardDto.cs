@@ -1,4 +1,6 @@
-﻿namespace QuizGame.Core.Models.DTOs;
+﻿using QuizGame.Core.Enums;
+
+namespace QuizGame.Core.Models.DTOs;
 
 public class UserStatBoardDto
 {
@@ -20,5 +22,6 @@ public class UserStatBoardDto
     public string BestCategory { get; set; } = string.Empty;
     public string MostPlayedCategory { get; set; } = string.Empty;
     public double SkillScore { get; set; }
+    public SkillScoreConfidence SkillScoreConfidence { get; set; } = SkillScoreConfidence.Unrated;
     public DateTime LastUpdated { get; set; }
 }

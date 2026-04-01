@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using QuizGame.Core;
 using QuizGame.Core.Entities;
+using QuizGame.Core.Enums;
 using QuizGame.Core.Interfaces;
 using QuizGame.Infrastructure.Data;
 
@@ -73,8 +74,8 @@ public class StatBoardService : IStatBoardService
 
         await UpdateDifficultyStatsAsync(userId, quiz, scorePercentage);
 
-        stats.SkillScore = CalculateSkillScore(stats);
-
+        stats.SkillScore = await CalculateSkillScoreAsync(stats, userId);
+        stats.SkillScoreConfidence = CalculateSkillScoreConfidence(stats.TotalQuizzesCompleted);
         stats.LastUpdated = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
@@ -317,26 +318,67 @@ public class StatBoardService : IStatBoardService
         };
     }
 
-    private static double CalculateSkillScore(UserStatBoard stats)
+    private async Task<double> CalculateSkillScoreAsync(UserStatBoard stats, string userId)
     {
-        // Average score percentage component (40% weight)
-        var avgScoreComponent = stats.AverageScorePercentage * 0.4;
+        // Get difficulty stats for this user
+        var difficultyStats = await _context.UserDifficultyStats
+            .Where(d => d.UserId == userId)
+            .ToListAsync();
 
-        // Win rate component (30% weight)
+        // Calculate difficulty component
+        var easyQuizzes = difficultyStats
+            .Where(d => d.Difficulty == Difficulty.Easy)
+            .Sum(d => d.TotalQuizzes);
+        var mediumQuizzes = difficultyStats
+            .Where(d => d.Difficulty == Difficulty.Medium)
+            .Sum(d => d.TotalQuizzes);
+        var hardQuizzes = difficultyStats
+            .Where(d => d.Difficulty == Difficulty.Hard)
+            .Sum(d => d.TotalQuizzes);
+
+        var totalQuizzes = easyQuizzes + mediumQuizzes + hardQuizzes;
+
+        var difficultyScore = totalQuizzes == 0 ? 0
+            : ((easyQuizzes * 1.0 + mediumQuizzes * 2.0 + hardQuizzes * 3.0) / (totalQuizzes * 3.0)) * 100;
+
+        // Calculate win rate
         var totalChallenges = stats.TotalChallengesWon + stats.TotalChallengesLost;
         var winRate = totalChallenges > 0
             ? (double)stats.TotalChallengesWon / totalChallenges * 100
             : 0;
-        var winRateComponent = winRate * 0.3;
 
-        // Difficulty multiplier component (20% weight)
-        // More quizzes completed = higher multiplier, capped at 100
-        var difficultyComponent = Math.Min(stats.TotalQuizzesCompleted * 2, 100) * 0.2;
+        // Apply tiered weighting based on challenge count
+        double skillScore;
 
-        // Consistency component (10% weight)
-        // Using longest win streak as a proxy for consistency, capped at 100
-        var consistencyComponent = Math.Min(stats.LongestWinStreak * 10, 100) * 0.1;
+        if (totalChallenges == 0)
+        {
+            skillScore = (difficultyScore * 0.50) + (stats.AverageScorePercentage * 0.50);
+        }
+        else if (totalChallenges <= 5)
+        {
+            skillScore = (difficultyScore * 0.45) + (stats.AverageScorePercentage * 0.35) + (winRate * 0.20);
+        }
+        else if (totalChallenges <= 10)
+        {
+            skillScore = (difficultyScore * 0.42) + (stats.AverageScorePercentage * 0.32) + (winRate * 0.26);
+        }
+        else
+        {
+            skillScore = (difficultyScore * 0.40) + (stats.AverageScorePercentage * 0.30) + (winRate * 0.30);
+        }
 
-        return Math.Round(avgScoreComponent + winRateComponent + difficultyComponent + consistencyComponent, 2);
+        return Math.Round(skillScore, 2);
+    }
+
+    private static SkillScoreConfidence CalculateSkillScoreConfidence(int totalQuizzesCompleted)
+    {
+        return totalQuizzesCompleted switch
+        {
+            < 5 => SkillScoreConfidence.Unrated,
+            < 20 => SkillScoreConfidence.Low,
+            < 50 => SkillScoreConfidence.Medium,
+            < 100 => SkillScoreConfidence.High,
+            _ => SkillScoreConfidence.VeryHigh
+        };
     }
 }

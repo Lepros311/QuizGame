@@ -1,4 +1,6 @@
-﻿namespace QuizGame.Core.Entities;
+﻿using QuizGame.Core.Enums;
+
+namespace QuizGame.Core.Entities;
 
 public class UserStatBoard
 {
@@ -33,6 +35,7 @@ public class UserStatBoard
 
     // Skill
     public double SkillScore { get; set; }
+    public SkillScoreConfidence SkillScoreConfidence { get; set; } = SkillScoreConfidence.Unrated;
 
     public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 }

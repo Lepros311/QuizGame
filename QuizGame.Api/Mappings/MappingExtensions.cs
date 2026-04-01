@@ -131,6 +131,7 @@ public static class MappingExtensions
             BestCategory = stats.BestCategory,
             MostPlayedCategory = stats.MostPlayedCategory,
             SkillScore = stats.SkillScore,
+            SkillScoreConfidence = stats.SkillScoreConfidence,
             LastUpdated = stats.LastUpdated
         };
     }

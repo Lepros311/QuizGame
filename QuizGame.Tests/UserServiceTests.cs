@@ -125,18 +125,17 @@ public class UserServiceTests
         var user1Stats = await _dbContext.UserStatBoards.FirstAsync(u => u.UserId == _userId1);
         var user2Stats = await _dbContext.UserStatBoards.FirstAsync(u => u.UserId == _userId2);
         var user3Stats = await _dbContext.UserStatBoards.FirstAsync(u => u.UserId == _userId3);
-
         user1Stats.SkillScore = 50;
         user2Stats.SkillScore = 55;
         user3Stats.SkillScore = 90;
-
         await _dbContext.SaveChangesAsync();
 
         // Act
         var matches = await _userService.GetSuggestedMatchesAsync(_userId1);
+        var matchList = matches.ToList();
 
         // Assert
-        Assert.AreEqual(1, matches.Count());
-        Assert.AreEqual("bob", matches.First().UserName);
+        Assert.AreEqual(2, matchList.Count);
+        Assert.AreEqual("bob", matchList.First().UserName);
     }
 }

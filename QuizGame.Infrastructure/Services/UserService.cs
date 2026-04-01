@@ -27,19 +27,45 @@ public class UserService : IUserService
 
     public async Task<IEnumerable<ApplicationUser>> GetSuggestedMatchesAsync(string userId)
     {
-        var userStats = await _context.UserStatBoards.FirstOrDefaultAsync(s => s.UserId == userId);
+        var userStats = await _context.UserStatBoards
+            .FirstOrDefaultAsync(u => u.UserId == userId);
 
         if (userStats == null)
         {
             return Enumerable.Empty<ApplicationUser>();
         }
 
-        var similarUserIds = await _context.UserStatBoards
-            .Where(u => u.UserId != userId && u.SkillScore >= userStats.SkillScore - 10 && u.SkillScore <= userStats.SkillScore + 10)
-            .Select(u => u.UserId)
+        var allStats = await _context.UserStatBoards
+            .Where(u => u.UserId != userId)
             .ToListAsync();
 
-        return await _context.Users.Where(u => similarUserIds.Contains(u.Id)).ToListAsync();
+        var results = new List<UserStatBoard>();
+        var bucketSize = 10;
+        var maxBuckets = 10;
+
+        for (int bucket = 1; bucket <= maxBuckets && results.Count < 10; bucket++)
+        {
+            var minScore = userStats.SkillScore - (bucket * bucketSize);
+            var maxScore = userStats.SkillScore + (bucket * bucketSize);
+
+            var bucketMatches = allStats
+                .Where(u => !results.Contains(u) &&
+                            u.SkillScore >= minScore &&
+                            u.SkillScore <= maxScore)
+                .OrderBy(u => u.SkillScoreConfidence)
+                .ToList();
+
+            results.AddRange(bucketMatches);
+        }
+
+        var sortedUserIds = results
+            .Take(10)
+            .Select(u => u.UserId)
+            .ToList();
+
+        return await _context.Users
+            .Where(u => sortedUserIds.Contains(u.Id))
+            .ToListAsync();
     }
 
     public async Task<UserProfileResponse> GetUserProfileAsync(string userId)
