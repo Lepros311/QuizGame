@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using QuizGame.API.Mappings;
+using QuizGame.Core.Entities;
 using QuizGame.Core.Interfaces;
+using QuizGame.Core.Models.Requests;
 using System.Security.Claims;
 
 namespace QuizGame.API.Controllers;
@@ -13,11 +16,13 @@ public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly IUserFollowService _userFollowService;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public UserController(IUserService userService, IUserFollowService userFollowService)
+    public UserController(IUserService userService, IUserFollowService userFollowService, UserManager<ApplicationUser> userManager)
     {
         _userService = userService;
         _userFollowService = userFollowService;
+        _userManager = userManager;
     }
 
     [HttpGet("me")]
@@ -115,5 +120,60 @@ public class UserController : ControllerBase
     {
         var following = await _userFollowService.GetFollowingAsync(id);
         return Ok(following.Select(u => u.ToDto()));
+    }
+
+    [HttpPatch("me/password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var user = await _userManager.FindByIdAsync(userId);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        var result = await _userManager.ChangePasswordAsync(
+            user,
+            request.CurrentPassword,
+            request.NewPassword);
+
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors.Select(e => e.Description));
+        }
+
+        return NoContent();
+    }
+
+    [HttpPatch("me/email")]
+    public async Task<IActionResult> ChangeEmail([FromBody] ChangeEmailRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var user = await _userManager.FindByIdAsync(userId);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        var passwordValid = await _userManager.CheckPasswordAsync(user, request.Password);
+
+        if (!passwordValid)
+        {
+            return BadRequest("Invalid password.");
+        }
+
+        user.Email = request.NewEmail;
+        user.NormalizedEmail = request.NewEmail.ToUpper();
+
+        var result = await _userManager.UpdateAsync(user);
+
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors.Select(e => e.Description));
+        }
+
+        return NoContent();
     }
 }
