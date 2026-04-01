@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using QuizGame.Core;
 using QuizGame.Core.Entities;
 using QuizGame.Core.Interfaces;
@@ -9,15 +10,26 @@ namespace QuizGame.Infrastructure.Services;
 public class StatBoardService : IStatBoardService
 {
     private readonly AppDbContext _context;
+    private readonly IMemoryCache _cache;
+    private const string StatBoardsCacheKey = "all_statboards";
+    private const string GlobalRankingsCacheKeyPrefix = "global_rankings_";
 
-    public StatBoardService(AppDbContext context)
+    public StatBoardService(AppDbContext context, IMemoryCache cache)
     {
         _context = context;
+        _cache = cache;
     }
 
     public async Task<IEnumerable<StatBoard>> GetAllStatBoardsAsync()
     {
-        return await _context.StatBoards.ToListAsync();
+        if (_cache.TryGetValue(StatBoardsCacheKey, out IEnumerable<StatBoard>? cachedStatBoards))
+        {
+            return cachedStatBoards!;
+        }
+
+        var statBoards = await _context.StatBoards.ToListAsync();
+        _cache.Set(StatBoardsCacheKey, statBoards);
+        return statBoards;
     }
 
     public async Task<StatBoard?> GetStatBoardAsync(int statBoardId)
@@ -64,10 +76,19 @@ public class StatBoardService : IStatBoardService
 
         stats.LastUpdated = DateTime.UtcNow;
         await _context.SaveChangesAsync();
+
+        _cache.Remove($"{GlobalRankingsCacheKeyPrefix}{quiz.CategoryId}");
     }
 
     public async Task<IEnumerable<UserStatBoard>> GetGlobalRankingsAsync(int statBoardId)
     {
+        var cacheKey = $"{GlobalRankingsCacheKeyPrefix}{statBoardId}";
+
+        if (_cache.TryGetValue(cacheKey, out IEnumerable<UserStatBoard>? cachedRankings))
+        {
+            return cachedRankings!;
+        }
+
         var statBoard = await _context.StatBoards.FirstOrDefaultAsync(s => s.Id == statBoardId);
 
         if (statBoard == null)
@@ -75,7 +96,9 @@ public class StatBoardService : IStatBoardService
             throw new ArgumentException("StatBoard not found.", nameof(statBoardId));
         }
 
-        return await GetRankingsQueryAsync(_context.UserStatBoards.AsQueryable(), statBoard.Name);
+        var rankings = await GetRankingsQueryAsync(_context.UserStatBoards.AsQueryable(), statBoard.Name);
+        _cache.Set(cacheKey, rankings);
+        return rankings;
     }
 
     public async Task<IEnumerable<UserStatBoard>> GetFollowingRankingsAsync(int statBoardId, string userId)

@@ -88,6 +88,9 @@ builder.Services.AddHangfire(config => config
 
 builder.Services.AddHangfireServer();
 
+// Caching
+builder.Services.AddMemoryCache();
+
 // Controllers
 builder.Services.AddControllers();
 

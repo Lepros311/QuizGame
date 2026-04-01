@@ -25,6 +25,8 @@ public class StatBoardServiceTests
         services.AddDbContext<AppDbContext>(options =>
             options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
+        services.AddMemoryCache();
+
         services.AddLogging();
         services.AddScoped<IStatBoardService, StatBoardService>();
 

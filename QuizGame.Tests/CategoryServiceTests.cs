@@ -19,6 +19,8 @@ public class CategoryServiceTests
         services.AddDbContext<AppDbContext>(options =>
             options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
+        services.AddMemoryCache();
+
         services.AddLogging();
         services.AddScoped<ICategoryService, CategoryService>();
 
