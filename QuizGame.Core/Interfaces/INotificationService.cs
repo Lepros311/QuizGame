@@ -7,5 +7,5 @@ public interface INotificationService
     Task NotifyUserAsync(string userId, string message);
     Task NotifyChallengeReceivedAsync(string userId, int challengeId, string challengerName);
     Task<IEnumerable<Notification>> GetUserNotificationsAsync(string userId);
-    Task MarkAsReadAsync(int notificationId);
+    Task MarkAsReadAsync(int notificationId, string userId);
 }

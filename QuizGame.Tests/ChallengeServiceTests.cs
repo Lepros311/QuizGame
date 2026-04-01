@@ -297,4 +297,57 @@ public class ChallengeServiceTests
         // Assert
         Assert.AreEqual(2, challenges.Count());
     }
+
+    [TestMethod]
+    public async Task AcceptChallenge_WithNonParticipant_ThrowsUnauthorizedAccessException()
+    {
+        // Arrange
+        var challenge = await _challengeService.CreateChallengeAsync(
+            _challengerId,
+            1,
+            Difficulty.Medium,
+            10,
+            new List<QuestionType> { QuestionType.MultipleChoice },
+            new List<string> { _opponentId });
+
+        // Act & Assert
+        await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(() =>
+            _challengeService.AcceptChallengeAsync(challenge.Id, Guid.NewGuid().ToString()));
+    }
+
+    [TestMethod]
+    public async Task DeclineChallenge_WithNonParticipant_ThrowsUnauthorizedAccessException()
+    {
+        // Arrange
+        var challenge = await _challengeService.CreateChallengeAsync(
+            _challengerId,
+            1,
+            Difficulty.Medium,
+            10,
+            new List<QuestionType> { QuestionType.MultipleChoice },
+            new List<string> { _opponentId });
+
+        // Act & Assert
+        await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(() =>
+            _challengeService.DeclineChallengeAsync(challenge.Id, Guid.NewGuid().ToString()));
+    }
+
+    [TestMethod]
+    public async Task SubmitChallengeAnswers_WithNonParticipant_ThrowsUnauthorizedAccessException()
+    {
+        // Arrange
+        var challenge = await _challengeService.CreateChallengeAsync(
+            _challengerId,
+            1,
+            Difficulty.Medium,
+            10,
+            new List<QuestionType> { QuestionType.MultipleChoice },
+            new List<string> { _opponentId });
+
+        var answers = new Dictionary<int, string>();
+
+        // Act & Assert
+        await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(() =>
+            _challengeService.SubmitChallengeAnswersAsync(challenge.Id, Guid.NewGuid().ToString(), answers));
+    }
 }

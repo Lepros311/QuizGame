@@ -7,5 +7,5 @@ public interface IQuizService
 {
     Task<Quiz> CreateQuizAsync(string userId, int categoryId, Difficulty difficulty, int questionCount, List<QuestionType> questionTypes, bool isMultiplayer);
     Task<Quiz?> GetQuizAsync(int quizId);
-    Task<Quiz> SubmitAnswersAsync(int quizId, Dictionary<int, string> answers);
+    Task<Quiz> SubmitAnswersAsync(int quizId, string userId, Dictionary<int, string> answers);
 }

@@ -186,7 +186,7 @@ public class QuizServiceTests
         answers[createdQuiz.Questions[1].Id] = "false";
 
         // Act
-        var result = await _quizService.SubmitAnswersAsync(createdQuiz.Id, answers);
+        var result = await _quizService.SubmitAnswersAsync(createdQuiz.Id, userId, answers);
 
         // Assert
         Assert.IsNotNull(result);
@@ -213,7 +213,7 @@ public class QuizServiceTests
         answers[createdQuiz.Questions[1].Id] = "true";
 
         // Act
-        var result = await _quizService.SubmitAnswersAsync(createdQuiz.Id, answers);
+        var result = await _quizService.SubmitAnswersAsync(createdQuiz.Id, userId, answers);
 
         // Assert
         Assert.AreEqual(0, result.Score);
@@ -258,7 +258,7 @@ public class QuizServiceTests
         answers[createdQuiz.Questions[0].Id] = "paris";
 
         // Act
-        var result = await _quizService.SubmitAnswersAsync(createdQuiz.Id, answers);
+        var result = await _quizService.SubmitAnswersAsync(createdQuiz.Id, userId, answers);
 
         // Assert
         Assert.AreEqual(1, result.Score);
@@ -274,10 +274,28 @@ public class QuizServiceTests
     {
         // Arrange
         var invalidQuizId = 999;
+        var userId = Guid.NewGuid().ToString();
         var answers = new Dictionary<int, string>();
 
         // Act & Assert
         await Assert.ThrowsExceptionAsync<ArgumentException>(() =>
-            _quizService.SubmitAnswersAsync(invalidQuizId, answers));
+            _quizService.SubmitAnswersAsync(invalidQuizId, userId, answers));
+    }
+
+    [TestMethod]
+    public async Task SubmitAnswers_WithWrongUserId_ThrowsUnauthorizedAccessException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid().ToString();
+        var createdQuiz = await _quizService.CreateQuizAsync(
+            userId, 1, Difficulty.Medium, 10,
+            new List<QuestionType> { QuestionType.MultipleChoice },
+            false);
+
+        var answers = new Dictionary<int, string>();
+
+        // Act & Assert
+        await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(() =>
+            _quizService.SubmitAnswersAsync(createdQuiz.Id, "wrong-user-id", answers));
     }
 }

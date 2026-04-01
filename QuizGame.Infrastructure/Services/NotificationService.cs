@@ -58,13 +58,18 @@ public class NotificationService : INotificationService
             .ToListAsync();
     }
 
-    public async Task MarkAsReadAsync(int notificationId)
+    public async Task MarkAsReadAsync(int notificationId, string userId)
     {
         var notification = await _context.Notifications.FirstOrDefaultAsync(n => n.Id == notificationId);
 
         if (notification == null)
         {
             throw new ArgumentException("Notification not found.", nameof(notificationId));
+        }
+
+        if (notification.UserId != userId)
+        {
+            throw new UnauthorizedAccessException("You can only mark your own notifications as read.");
         }
 
         notification.IsRead = true;

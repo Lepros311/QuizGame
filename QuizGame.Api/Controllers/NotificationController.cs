@@ -31,12 +31,17 @@ public class NotificationController : ControllerBase
     {
         try
         {
-            await _notificationService.MarkAsReadAsync(id);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            await _notificationService.MarkAsReadAsync(id, userId);
             return NoContent();
         }
         catch (ArgumentException ex)
         {
             return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
         }
     }
 }

@@ -110,6 +110,11 @@ public class ChallengeService : IChallengeService
 
         var participant = challenge.Participants.FirstOrDefault(p => p.UserId == userId);
 
+        if (participant == null)
+        {
+            throw new UnauthorizedAccessException("You are not a participant in this challenge.");
+        }
+
         participant.Status = ParticipantStatus.Accepted;
         challenge.Status = ChallengeStatus.Active;
 
@@ -133,7 +138,7 @@ public class ChallengeService : IChallengeService
 
         if (participant == null)
         {
-            throw new ArgumentException("User is not a participant in this challenge.", nameof(userId));
+            throw new UnauthorizedAccessException("User is not a participant in this challenge.");
         }
 
         participant.Status = ParticipantStatus.Declined;
@@ -160,7 +165,7 @@ public class ChallengeService : IChallengeService
 
         if (participant == null)
         {
-            throw new ArgumentException("User is not a participant in this challenge.", nameof(userId));
+            throw new UnauthorizedAccessException("User is not a participant in this challenge.");
         }
 
         var score = 0;

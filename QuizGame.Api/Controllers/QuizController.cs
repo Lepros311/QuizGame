@@ -75,13 +75,17 @@ public class QuizController : ControllerBase
         try
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var quiz = await _quizService.SubmitAnswersAsync(id, request.Answers);
+            var quiz = await _quizService.SubmitAnswersAsync(id, userId, request.Answers);
             await _statBoardService.UpdateUserStatsAsync(userId, quiz.Id);
             return Ok(quiz.ToDto());
         }
         catch (ArgumentException ex)
         {
             return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
         }
     }
 }

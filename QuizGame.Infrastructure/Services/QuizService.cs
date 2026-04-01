@@ -64,7 +64,7 @@ public class QuizService : IQuizService
             .FirstOrDefaultAsync(q => q.Id == quizId);
     }
 
-    public async Task<Quiz> SubmitAnswersAsync(int quizId, Dictionary<int, string> answers)
+    public async Task<Quiz> SubmitAnswersAsync(int quizId, string userId, Dictionary<int, string> answers)
     {
         var quiz = await _context.Quizzes
             .Include(q => q.Questions)
@@ -73,6 +73,11 @@ public class QuizService : IQuizService
         if (quiz == null)
         {
             throw new ArgumentException("Quiz not found.", nameof(quizId));
+        }
+
+        if (quiz.UserId != userId)
+        {
+            throw new UnauthorizedAccessException("You can only submit answers to your own quizzes.");
         }
 
         var score = 0;

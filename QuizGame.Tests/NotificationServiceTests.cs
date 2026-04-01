@@ -86,7 +86,7 @@ public class NotificationServiceTests
         var notificationId = notifications.First().Id;
 
         // Act
-        await _notificationService.MarkAsReadAsync(notificationId);
+        await _notificationService.MarkAsReadAsync(notificationId, _userId);
 
         // Assert
         var updatedNotifications = await _notificationService.GetUserNotificationsAsync(_userId);
@@ -112,6 +112,19 @@ public class NotificationServiceTests
 
         // Act & Assert
         await Assert.ThrowsExceptionAsync<ArgumentException>(() =>
-            _notificationService.MarkAsReadAsync(invalidNotificationId));
+            _notificationService.MarkAsReadAsync(invalidNotificationId, _userId));
+    }
+
+    [TestMethod]
+    public async Task MarkAsRead_WithWrongUserId_ThrowsUnauthorizedAccessException()
+    {
+        // Arrange
+        await _notificationService.NotifyUserAsync(_userId, "Test notification");
+        var notifications = await _notificationService.GetUserNotificationsAsync(_userId);
+        var notificationId = notifications.First().Id;
+
+        // Act & Assert
+        await Assert.ThrowsExceptionAsync<UnauthorizedAccessException>(() =>
+            _notificationService.MarkAsReadAsync(notificationId, "wrong-user-id"));
     }
 }
