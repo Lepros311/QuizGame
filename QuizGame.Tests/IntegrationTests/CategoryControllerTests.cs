@@ -1,22 +1,19 @@
 using QuizGame.Core.Models.Requests;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace QuizGame.Tests.IntegrationTests;
 
 [TestClass]
+[DoNotParallelize]
 public class CategoryControllerTests : IntegrationTestBase
 {
-    private string _token = null!;
-
     [TestInitialize]
-    [DoNotParallelize]
     public async Task Setup()
     {
         InitializeBase();
-        _token = await RegisterAndLoginAsync();
-        SetAuthToken(_token);
+        var token = await RegisterAndLoginAsync();
+        SetAuthToken(token);
     }
 
     [TestCleanup]
@@ -28,15 +25,11 @@ public class CategoryControllerTests : IntegrationTestBase
     [TestMethod]
     public async Task GetAll_ReturnsSeededCategories()
     {
-        Console.WriteLine($"Auth header: {Client.DefaultRequestHeaders.Authorization}");
-
         // Act
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/category");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _token);
-        var response = await Client.SendAsync(request);
+        var response = await Client.GetAsync("/api/category");
+
         // Assert
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
         var content = await response.Content.ReadAsStringAsync();
         Assert.IsTrue(content.Contains("Science"));
         Assert.IsTrue(content.Contains("History"));

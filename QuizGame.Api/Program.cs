@@ -7,7 +7,6 @@ using Microsoft.OpenApi.Models;
 using QuizGame.API;
 using QuizGame.Core.Entities;
 using QuizGame.Core.Interfaces;
-using Microsoft.Extensions.Configuration;
 using QuizGame.Infrastructure.Data;
 using QuizGame.Infrastructure.Services;
 using System.Text;
@@ -40,7 +39,7 @@ builder.Services.AddAuthentication(options =>
     options.RequireHttpsMetadata = false;
 });
 
-// Bind JWT validation from IConfiguration after all sources (e.g. WebApplicationFactory in-memory) are merged.
+// Bind JWT validation from IConfiguration after all sources are merged
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<IConfiguration>((options, config) =>
     {
@@ -64,10 +63,10 @@ builder.Services.AddCors(options =>
     {
         policy
             .WithOrigins(
-                "http://localhost:3000", // React
-                "http://localhost:5173", // Vue
-                "http://localhost:4200", // Angular
-                "https://my-production-ready-domain.com") // update when deploying
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://localhost:4200",
+                "https://my-production-ready-domain.com")
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -101,14 +100,6 @@ builder.Services.AddHangfireServer();
 
 // Caching
 builder.Services.AddMemoryCache();
-
-builder.Services.AddAuthorization(options =>
-{
-    options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
-        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-        .RequireAuthenticatedUser()
-        .Build();
-});
 
 // Controllers
 builder.Services.AddControllers();
@@ -156,6 +147,7 @@ if (!app.Environment.IsEnvironment("Testing"))
 {
     app.UseHttpsRedirection();
 }
+
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();

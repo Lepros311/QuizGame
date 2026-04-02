@@ -31,18 +31,12 @@ public abstract class IntegrationTestBase
         string email = "test@example.com",
         string password = "Password123!")
     {
-        var registerResponse = await Client.PostAsJsonAsync("/api/auth/register", new RegisterRequest
+        await Client.PostAsJsonAsync("/api/auth/register", new RegisterRequest
         {
             Username = username,
             Email = email,
             Password = password
         });
-
-        // *** DEBUG START ***
-        var registerContent = await registerResponse.Content.ReadAsStringAsync();
-        Console.WriteLine($"Register status: {registerResponse.StatusCode}");
-        Console.WriteLine($"Register content: {registerContent}");
-        // *** DEBUG END ***
 
         var loginResponse = await Client.PostAsJsonAsync("/api/auth/login", new LoginRequest
         {
@@ -51,23 +45,18 @@ public abstract class IntegrationTestBase
         });
 
         var content = await loginResponse.Content.ReadAsStringAsync();
-
-        // *** DEBUG START ***
-        Console.WriteLine($"Login status: {loginResponse.StatusCode}");
-        Console.WriteLine($"Login content: {content}");
-        // *** DEBUG END ***
-
         var json = JsonDocument.Parse(content);
-        string? token = null;
-        if (json.RootElement.TryGetProperty("token", out var tokenElement) ||
-            json.RootElement.TryGetProperty("Token", out tokenElement))
+
+        if (!json.RootElement.TryGetProperty("token", out var tokenElement))
         {
-            token = tokenElement.GetString();
+            throw new InvalidOperationException($"Could not extract token from response: {content}");
         }
+
+        var token = tokenElement.GetString();
 
         if (string.IsNullOrEmpty(token))
         {
-            throw new InvalidOperationException($"Could not extract token from response: {content}");
+            throw new InvalidOperationException($"Token was null or empty in response: {content}");
         }
 
         return token;
@@ -77,6 +66,5 @@ public abstract class IntegrationTestBase
     {
         Client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
-        Console.WriteLine($"Token set: {token[..20]}...");
     }
 }
