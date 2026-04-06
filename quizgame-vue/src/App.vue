@@ -1,7 +1,16 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-  <HelloWorld />
+  <header class="border-bottom bg-light">
+    <nav class="navbar navbar-expand container">
+      <RouterLink to="/" class="navbar-brand fw-bold">
+        QuizGame Vue
+      </RouterLink>
+    </nav>
+  </header>
+
+  <main>
+    <RouterView />
+  </main>
 </template>
