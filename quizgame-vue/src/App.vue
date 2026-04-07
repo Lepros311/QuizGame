@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ToastHost from './components/ToastHost.vue';
 </script>
 
 <template>
@@ -13,4 +14,6 @@
   <main>
     <RouterView />
   </main>
+
+  <ToastHost />
 </template>

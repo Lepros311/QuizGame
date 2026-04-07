@@ -65,6 +65,7 @@ builder.Services.AddCors(options =>
             .WithOrigins(
                 "http://localhost:3000",
                 "http://localhost:5173",
+                "http://localhost:5003",
                 "http://localhost:4200",
                 "https://my-production-ready-domain.com")
             .AllowAnyHeader()
@@ -143,12 +144,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowFrontend");
+
 if (!app.Environment.IsEnvironment("Testing"))
 {
     app.UseHttpsRedirection();
 }
 
-app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
