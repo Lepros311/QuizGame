@@ -106,6 +106,37 @@ public class GeminiQuestionGeneratorService : IQuestionGeneratorService
         };
     }
 
+    /// <summary>
+    /// Gemini often wraps JSON in ``` or ```json fences despite the prompt. Strip those and isolate the JSON array.
+    /// </summary>
+    private static string NormalizeQuestionsJson(string raw)
+    {
+        var t = raw.Trim();
+
+        // Drop opening fence: ```json, ```JSON, or ```
+        if (t.StartsWith("```", StringComparison.Ordinal))
+        {
+            var firstLineBreak = t.IndexOf('\n');
+            if (firstLineBreak >= 0)
+                t = t[(firstLineBreak + 1)..].Trim();
+
+            var closing = t.LastIndexOf("```", StringComparison.Ordinal);
+            if (closing >= 0)
+                t = t[..closing].Trim();
+        }
+
+        // If there's still prose before the array, take from first '[' to last ']'
+        if (!t.StartsWith('['))
+        {
+            var start = t.IndexOf('[');
+            var end = t.LastIndexOf(']');
+            if (start >= 0 && end > start)
+                t = t[start..(end + 1)];
+        }
+
+        return t.Trim();
+    }
+
     private static List<Question> ParseQuestionsFromResponse(string responseContent)
     {
         var jsonDoc = JsonDocument.Parse(responseContent);
@@ -117,7 +148,9 @@ public class GeminiQuestionGeneratorService : IQuestionGeneratorService
             .GetProperty("text")
             .GetString()!;
 
-        var questions = JsonSerializer.Deserialize<List<GeminiQuestionDto>>(text, new JsonSerializerOptions
+        var payload = NormalizeQuestionsJson(text);
+
+        var questions = JsonSerializer.Deserialize<List<GeminiQuestionDto>>(payload, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         })!;

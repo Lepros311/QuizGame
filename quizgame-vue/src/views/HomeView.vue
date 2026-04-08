@@ -87,9 +87,26 @@ watch(token, (v) => {
                 Test toast (Pinia action)
               </button>
 
-              <RouterLink to="/quiz" class="btn btn-primary btn-lg">
+              <RouterLink
+                v-if="categories.categories.length"
+                :to="{
+                  name: 'quiz',
+                  query: {
+                    categoryId: categories.categories[0].id,
+                  },
+                }"
+                class="btn btn-primary btn-lg"
+              >
                 Start Quiz
               </RouterLink>
+              <button
+                v-else
+                type="button"
+                class="btn btn-primary btn-lg"
+                disabled
+              >
+                Start Quiz (load categories first)
+              </button>
             </div>
           </div>
         </div>
