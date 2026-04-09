@@ -1,14 +1,24 @@
 import axios from 'axios'
 import { defineStore } from 'pinia'
+import { fetchChallenge, submitChallengeAnswers } from '../api/challenge'
 import { createQuiz, submitQuizAnswers } from '../api/quiz'
+import {
+  QUIZ_MAX_QUESTION_COUNT,
+  QUIZ_MIN_QUESTION_COUNT,
+} from '../gameConstants'
 import type { QuestionDto, QuizDto } from '../types/api'
 import { useToastStore } from './toast'
+
+/** ChallengeStatus from API (numeric enum) */
+const CHALLENGE_ACTIVE = 1
 
 type Phase = 'idle' | 'loading' | 'in_progress' | 'submitting' | 'finished'
 
 export const useQuizStore = defineStore('quiz', {
   state: () => ({
     phase: 'idle' as Phase,
+    /** When set, submit posts to challenge submit instead of quiz submit */
+    challengeId: null as number | null,
     quiz: null as QuizDto | null,
     currentIndex: 0,
     /** Text sent for the current question (option label or short-answer text) */
@@ -27,11 +37,6 @@ export const useQuizStore = defineStore('quiz', {
     },
   },
   actions: {
-    demoToastFromAction() {
-      const toast = useToastStore()
-      toast.success('Toast from a Pinia action — pattern check.')
-    },
-
     privateMessageFromAxios(e: unknown): string {
       if (axios.isAxiosError(e)) {
         const d = e.response?.data
@@ -42,20 +47,76 @@ export const useQuizStore = defineStore('quiz', {
       return e instanceof Error ? e.message : 'Something went wrong'
     },
 
-    async startNewQuiz(categoryId: number) {
+    async startChallengeQuiz(challengeId: number) {
       const toast = useToastStore()
       this.phase = 'loading'
+      this.challengeId = null
       this.quiz = null
       this.currentIndex = 0
       this.answerDraft = ''
       this.answers = {}
       try {
+        const c = await fetchChallenge(challengeId)
+        if (c.status !== CHALLENGE_ACTIVE) {
+          toast.warning(
+            'Challenge must be active (accepted) before you can play.',
+          )
+          this.phase = 'idle'
+          return
+        }
+        if (!c.quiz?.questions?.length) {
+          toast.error('This challenge has no quiz loaded yet.')
+          this.phase = 'idle'
+          return
+        }
+        this.challengeId = challengeId
+        this.quiz = c.quiz
+        this.phase = 'in_progress'
+        toast.success('Challenge quiz ready.')
+      } catch (e) {
+        toast.error(this.privateMessageFromAxios(e))
+        this.phase = 'idle'
+        this.quiz = null
+      }
+    },
+
+    async startNewQuiz(options: {
+      categoryId: number
+      difficulty: number
+      questionCount: number
+      questionTypes: number[]
+      isMultiplayer: boolean
+    }) {
+      const toast = useToastStore()
+      this.phase = 'loading'
+      this.challengeId = null
+      this.quiz = null
+      this.currentIndex = 0
+      this.answerDraft = ''
+      this.answers = {}
+      const types = [...new Set(options.questionTypes)].filter(
+        (t) => t >= 0 && t <= 2,
+      )
+      if (!types.length) {
+        toast.warning('Pick at least one question type.')
+        this.phase = 'idle'
+        return
+      }
+      const rawCount = Number(options.questionCount)
+      const questionCount = Math.min(
+        QUIZ_MAX_QUESTION_COUNT,
+        Math.max(
+          QUIZ_MIN_QUESTION_COUNT,
+          Number.isFinite(rawCount) ? Math.round(rawCount) : QUIZ_MIN_QUESTION_COUNT,
+        ),
+      )
+      try {
         this.quiz = await createQuiz({
-          categoryId,
-          difficulty: 1,
-          questionCount: 10,
-          questionTypes: [0],
-          isMultiplayer: false,
+          categoryId: options.categoryId,
+          difficulty: options.difficulty,
+          questionCount,
+          questionTypes: types,
+          isMultiplayer: options.isMultiplayer,
         })
         if (!this.quiz.questions.length) {
           toast.warning('Quiz created but has no questions yet.')
@@ -105,9 +166,13 @@ export const useQuizStore = defineStore('quiz', {
 
       this.phase = 'submitting'
       try {
-        this.quiz = await submitQuizAnswers(this.quiz.id, {
-          answers: { ...this.answers },
-        })
+        const payload = { answers: { ...this.answers } }
+        if (this.challengeId != null) {
+          const updated = await submitChallengeAnswers(this.challengeId, payload)
+          this.quiz = updated.quiz ?? this.quiz
+        } else {
+          this.quiz = await submitQuizAnswers(this.quiz.id, payload)
+        }
         this.phase = 'finished'
         toast.success(`Submitted. Score: ${this.quiz.score} / ${this.quiz.questions.length}`)
       } catch (e) {
@@ -119,6 +184,7 @@ export const useQuizStore = defineStore('quiz', {
     resetQuiz() {
       const toast = useToastStore()
       this.phase = 'idle'
+      this.challengeId = null
       this.quiz = null
       this.currentIndex = 0
       this.answerDraft = ''

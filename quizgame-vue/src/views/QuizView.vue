@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import type { LocationQueryValue } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import {
+  QUIZ_MAX_QUESTION_COUNT,
+  QUIZ_MIN_QUESTION_COUNT,
+} from '../gameConstants'
 import { useQuizStore } from '../stores/quiz'
 import { useCategoryStore } from '../stores/category'
 import { useToastStore } from '../stores/toast'
@@ -11,7 +16,16 @@ const quiz = useQuizStore()
 const categories = useCategoryStore()
 const toast = useToastStore()
 
-const { phase, currentQuestion, answerDraft } = storeToRefs(quiz)
+const { phase, currentQuestion, answerDraft, challengeId } = storeToRefs(quiz)
+
+const isChallengePlay = computed(() => route.name === 'challenge-play')
+
+const challengeRouteId = computed(() => {
+  if (!isChallengePlay.value) return null
+  const raw = route.params.id
+  const n = Number(Array.isArray(raw) ? raw[0] : raw)
+  return Number.isFinite(n) ? n : null
+})
 
 const categoryId = computed(() => {
   const raw = route.query.categoryId
@@ -22,6 +36,98 @@ const categoryId = computed(() => {
 
 const resolvedCategoryId = computed(() => {
   return categoryId.value ?? categories.categories[0]?.id ?? null
+})
+
+function firstQueryValue(
+  v: LocationQueryValue | LocationQueryValue[] | undefined,
+): string | undefined {
+  if (v == null) return undefined
+  if (Array.isArray(v)) {
+    const x = v[0]
+    return x == null ? undefined : String(x)
+  }
+  return v === null ? undefined : String(v)
+}
+
+function parseIntQuery(
+  v: LocationQueryValue | LocationQueryValue[] | undefined,
+  fallback: number,
+  min: number,
+  max: number,
+): number {
+  const n = Number(firstQueryValue(v))
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(max, Math.max(min, n))
+}
+
+function parseQuestionTypesQuery(
+  v: LocationQueryValue | LocationQueryValue[] | undefined,
+): number[] {
+  const s = firstQueryValue(v)
+  if (s == null || !String(s).trim()) return [0]
+  const nums = String(s)
+    .split(',')
+    .map((x) => Number(x.trim()))
+    .filter((n) => Number.isFinite(n) && n >= 0 && n <= 2)
+  const uniq = [...new Set(nums)]
+  return uniq.length ? uniq : [0]
+}
+
+function parseMultiplayerQuery(
+  v: LocationQueryValue | LocationQueryValue[] | undefined,
+): boolean {
+  const s = firstQueryValue(v)
+  return s === '1' || s === 'true'
+}
+
+const soloQuizOptions = computed(() => {
+  const cid = resolvedCategoryId.value
+  if (cid == null) return null
+  const q = route.query
+  return {
+    categoryId: cid,
+    difficulty: parseIntQuery(q.difficulty, 1, 0, 2),
+    questionCount: parseIntQuery(
+      q.questionCount,
+      QUIZ_MIN_QUESTION_COUNT,
+      QUIZ_MIN_QUESTION_COUNT,
+      QUIZ_MAX_QUESTION_COUNT,
+    ),
+    questionTypes: parseQuestionTypesQuery(q.questionTypes),
+    isMultiplayer: parseMultiplayerQuery(q.multiplayer),
+  }
+})
+
+function serializeQuizRouteQuery(o: {
+  categoryId: number
+  difficulty: number
+  questionCount: number
+  questionTypes: number[]
+  isMultiplayer: boolean
+}): Record<string, string> {
+  return {
+    categoryId: String(o.categoryId),
+    difficulty: String(o.difficulty),
+    questionCount: String(o.questionCount),
+    questionTypes: o.questionTypes.join(','),
+    multiplayer: o.isMultiplayer ? '1' : '0',
+  }
+}
+
+const playAgainQuery = computed((): Record<string, string> => {
+  if (challengeId.value != null) return {}
+  const dto = quiz.quiz
+  if (!dto) return {}
+  const cid = dto.category?.id ?? resolvedCategoryId.value
+  if (cid == null) return {}
+  const types = dto.questionTypes?.length ? dto.questionTypes : [0]
+  return serializeQuizRouteQuery({
+    categoryId: cid,
+    difficulty: dto.difficulty,
+    questionCount: dto.questionCount,
+    questionTypes: types,
+    isMultiplayer: dto.isMultiplayer,
+  })
 })
 
 const isShortAnswer = computed(() => {
@@ -36,14 +142,23 @@ const isTrueFalse = computed(() => {
 const isSubmitting = computed(() => phase.value === 'submitting')
 
 onMounted(() => {
-  const id = resolvedCategoryId.value
-  if (id == null) {
+  if (isChallengePlay.value) {
+    const cid = challengeRouteId.value
+    if (cid == null) {
+      toast.error('Invalid challenge link.')
+      return
+    }
+    void quiz.startChallengeQuiz(cid)
+    return
+  }
+  const opts = soloQuizOptions.value
+  if (opts == null) {
     toast.error(
-      'No category. Go home, click “Load categories from API”, then Start Quiz.',
+      'No category. Go home, load categories, pick one, then Start Quiz.',
     )
     return
   }
-  void quiz.startNewQuiz(id)
+  void quiz.startNewQuiz(opts)
 })
 </script>
 
@@ -145,7 +260,7 @@ onMounted(() => {
               <div class="d-grid gap-2 d-md-flex">
                 <button
                   type="button"
-                  class="btn btn-primary d-inline-flex align-items-center justify-content-center"
+                  class="btn btn-primary app-cta-primary d-inline-flex align-items-center justify-content-center fw-semibold"
                   :disabled="isSubmitting"
                   @click="quiz.goNext()"
                 >
@@ -169,12 +284,16 @@ onMounted(() => {
               </p>
               <div class="d-grid gap-2 d-md-flex">
                 <RouterLink
-                  v-if="resolvedCategoryId != null"
-                  :to="{
-                    name: 'quiz',
-                    query: { categoryId: resolvedCategoryId },
-                  }"
-                  class="btn btn-primary"
+                  v-if="challengeId != null"
+                  :to="{ name: 'challenges' }"
+                  class="btn btn-primary app-cta-primary fw-semibold"
+                >
+                  Back to challenges
+                </RouterLink>
+                <RouterLink
+                  v-else-if="resolvedCategoryId != null"
+                  :to="{ name: 'quiz', query: playAgainQuery }"
+                  class="btn btn-primary app-cta-primary fw-semibold"
                 >
                   Play again
                 </RouterLink>

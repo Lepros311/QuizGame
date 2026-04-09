@@ -1,6 +1,14 @@
 import axios from 'axios'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL
+/** Trailing slash breaks axios baseURL + '/api/...' resolution in some cases */
+const raw = import.meta.env.VITE_API_BASE_URL as string | undefined
+const baseURL = raw?.trim().replace(/\/$/, '') ?? ''
+
+if (!baseURL && import.meta.env.DEV) {
+  console.error(
+    '[QuizGame] VITE_API_BASE_URL is missing. Add quizgame-vue/.env.development with e.g. VITE_API_BASE_URL=https://localhost:7104',
+  )
+}
 
 export const apiClient = axios.create({
   baseURL,
@@ -14,5 +22,8 @@ export const publicApi = axios.create({
 })
 
 if (import.meta.env.DEV) {
-  console.log('API base URL:', import.meta.env.VITE_API_BASE_URL)
+  console.log(
+    'API base URL:',
+    baseURL || '(empty — requests will hit the dev server origin)',
+  )
 }

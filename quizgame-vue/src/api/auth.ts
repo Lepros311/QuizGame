@@ -11,3 +11,16 @@ export async function loginRequest(
   })
   return data
 }
+
+export async function registerRequest(
+  username: string,
+  email: string,
+  password: string,
+): Promise<AuthResultDto> {
+  const { data } = await publicApi.post<AuthResultDto>('/api/auth/register', {
+    username,
+    email,
+    password,
+  })
+  return data
+}

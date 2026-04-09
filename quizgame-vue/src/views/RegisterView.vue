@@ -7,6 +7,7 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 
+const username = ref('')
 const email = ref('')
 const password = ref('')
 const busy = ref(false)
@@ -14,12 +15,12 @@ const busy = ref(false)
 async function onSubmit() {
   busy.value = true
   try {
-    await auth.login(email.value, password.value)
+    await auth.register(username.value, email.value, password.value)
     const redirect =
       typeof route.query.redirect === 'string' ? route.query.redirect : '/'
     await router.replace(redirect || '/')
   } catch {
-    /* toast already shown in store */
+    /* toast in store */
   } finally {
     busy.value = false
   }
@@ -32,27 +33,38 @@ async function onSubmit() {
       <div class="col-12 col-sm-10 col-md-8 col-lg-5">
         <div class="card shadow-sm">
           <div class="card-body p-4">
-            <h1 class="h3 mb-4 app-section-heading">Sign in</h1>
+            <h1 class="h3 mb-4 app-section-heading">Create account</h1>
             <form @submit.prevent="onSubmit">
               <div class="mb-3">
-                <label class="form-label" for="login-email">Email</label>
+                <label class="form-label" for="reg-username">Username</label>
                 <input
-                  id="login-email"
-                  v-model="email"
-                  type="email"
+                  id="reg-username"
+                  v-model="username"
+                  type="text"
                   class="form-control"
                   autocomplete="username"
                   required
                 />
               </div>
               <div class="mb-3">
-                <label class="form-label" for="login-password">Password</label>
+                <label class="form-label" for="reg-email">Email</label>
                 <input
-                  id="login-password"
+                  id="reg-email"
+                  v-model="email"
+                  type="email"
+                  class="form-control"
+                  autocomplete="email"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="reg-password">Password</label>
+                <input
+                  id="reg-password"
                   v-model="password"
                   type="password"
                   class="form-control"
-                  autocomplete="current-password"
+                  autocomplete="new-password"
                   required
                 />
               </div>
@@ -67,12 +79,12 @@ async function onSubmit() {
                   role="status"
                   aria-hidden="true"
                 />
-                {{ busy ? 'Signing in…' : 'Sign in' }}
+                {{ busy ? 'Creating…' : 'Register' }}
               </button>
             </form>
             <p class="mt-3 mb-0 text-muted small">
-              Need an account?
-              <RouterLink :to="{ name: 'register' }">Register</RouterLink>
+              Already have an account?
+              <RouterLink :to="{ name: 'login' }">Sign in</RouterLink>
             </p>
             <p class="mt-2 mb-0 text-muted small">
               <RouterLink to="/">Back to home</RouterLink>
