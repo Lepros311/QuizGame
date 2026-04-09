@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useQuizStore } from '../stores/quiz'
 import { useAuthStore } from '../stores/auth'
@@ -9,12 +8,7 @@ const quiz = useQuizStore()
 const auth = useAuthStore()
 const categories = useCategoryStore()
 
-const { token } = storeToRefs(auth)
-const tokenInput = ref(token.value ?? '')
-
-watch(token, (v) => {
-  tokenInput.value = v ?? ''
-})
+const { isLoggedIn } = storeToRefs(auth)
 </script>
 
 <template>
@@ -28,33 +22,16 @@ watch(token, (v) => {
               Practice your knowledge with quick quizzes.
             </p>
 
-            <div class="mb-4 p-3 border rounded">
-              <label class="form-label">Dev JWT (paste from Swagger)</label>
-              <textarea
-                v-model="tokenInput"
-                class="form-control mb-2"
-                rows="2"
-                placeholder="eyJhbGciOi..."
-              />
-              <div class="d-flex gap-2 flex-wrap">
-                <button
-                  type="button"
-                  class="btn btn-sm btn-primary"
-                  @click="auth.setToken(tokenInput)"
-                >
-                  Save token
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-secondary"
-                  @click="auth.clearToken()"
-                >
-                  Clear
-                </button>
+            <div v-if="!isLoggedIn" class="alert alert-info mb-4">
+              Sign in to load categories and play a quiz.
+              <div class="mt-2">
+                <RouterLink class="btn btn-primary" :to="{ name: 'login' }">
+                  Sign in
+                </RouterLink>
               </div>
             </div>
 
-            <div class="mb-4">
+            <div v-else class="mb-4">
               <button
                 type="button"
                 class="btn btn-outline-primary"
@@ -88,7 +65,7 @@ watch(token, (v) => {
               </button>
 
               <RouterLink
-                v-if="categories.categories.length"
+                v-if="isLoggedIn && categories.categories.length"
                 :to="{
                   name: 'quiz',
                   query: {
@@ -100,12 +77,20 @@ watch(token, (v) => {
                 Start Quiz
               </RouterLink>
               <button
-                v-else
+                v-else-if="isLoggedIn"
                 type="button"
                 class="btn btn-primary btn-lg"
                 disabled
               >
                 Start Quiz (load categories first)
+              </button>
+              <button
+                v-else
+                type="button"
+                class="btn btn-primary btn-lg"
+                disabled
+              >
+                Start Quiz (sign in first)
               </button>
             </div>
           </div>
