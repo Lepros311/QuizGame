@@ -29,7 +29,6 @@ export const useCategoryStore = defineStore('category', {
       this.loading = true
       try {
         this.categories = await fetchCategories()
-        toast.success(`Loaded ${this.categories.length} categories`)
       } catch (e: unknown) {
         toast.error(messageFromAxios(e))
         this.categories = []

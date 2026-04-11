@@ -98,38 +98,6 @@ const soloQuizOptions = computed(() => {
   }
 })
 
-function serializeQuizRouteQuery(o: {
-  categoryId: number
-  difficulty: number
-  questionCount: number
-  questionTypes: number[]
-  isMultiplayer: boolean
-}): Record<string, string> {
-  return {
-    categoryId: String(o.categoryId),
-    difficulty: String(o.difficulty),
-    questionCount: String(o.questionCount),
-    questionTypes: o.questionTypes.join(','),
-    multiplayer: o.isMultiplayer ? '1' : '0',
-  }
-}
-
-const playAgainQuery = computed((): Record<string, string> => {
-  if (challengeId.value != null) return {}
-  const dto = quiz.quiz
-  if (!dto) return {}
-  const cid = dto.category?.id ?? resolvedCategoryId.value
-  if (cid == null) return {}
-  const types = dto.questionTypes?.length ? dto.questionTypes : [0]
-  return serializeQuizRouteQuery({
-    categoryId: cid,
-    difficulty: dto.difficulty,
-    questionCount: dto.questionCount,
-    questionTypes: types,
-    isMultiplayer: dto.isMultiplayer,
-  })
-})
-
 const isShortAnswer = computed(() => {
   return currentQuestion.value?.questionType === 2
 })
@@ -290,20 +258,6 @@ onMounted(() => {
                 >
                   Back to challenges
                 </RouterLink>
-                <RouterLink
-                  v-else-if="resolvedCategoryId != null"
-                  :to="{ name: 'quiz', query: playAgainQuery }"
-                  class="btn btn-primary app-cta-primary fw-semibold"
-                >
-                  Play again
-                </RouterLink>
-                <button
-                  type="button"
-                  class="btn btn-outline-secondary"
-                  @click="quiz.resetQuiz()"
-                >
-                  Reset
-                </button>
                 <RouterLink to="/" class="btn btn-outline-secondary">Home</RouterLink>
               </div>
             </div>

@@ -85,7 +85,6 @@ export const useAuthStore = defineStore('auth', {
 
       this.setToken(result.token)
       await this.fetchMe()
-      toast.success('Signed in.')
     },
 
     async register(username: string, email: string, password: string) {

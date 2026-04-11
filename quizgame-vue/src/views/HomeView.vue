@@ -51,10 +51,6 @@ function syncSelectedCategory() {
   }
 }
 
-const selectedCategory = computed(() =>
-  categories.categories.find((c) => c.id === selectedCategoryId.value),
-)
-
 const selectedQuestionTypes = computed(() => {
   const t: number[] = []
   if (typeMultipleChoice.value) t.push(0)
@@ -103,35 +99,22 @@ const quizLink = computed(() => ({
             </div>
 
             <div v-else class="mb-4">
-              <div class="d-flex flex-wrap gap-2 align-items-end mb-3">
-                <div class="flex-grow-1" style="min-width: 12rem">
-                  <label class="form-label mb-0">Category</label>
-                  <select
-                    v-model.number="selectedCategoryId"
-                    class="form-select"
-                    :disabled="categories.loading || !categories.categories.length"
-                  >
-                    <option
-                      v-for="c in categories.categories"
-                      :key="c.id"
-                      :value="c.id"
-                    >
-                      {{ c.name }}
-                    </option>
-                  </select>
-                </div>
-                <button
-                  type="button"
-                  class="btn btn-outline-secondary"
-                  :disabled="categories.loading"
-                  @click="categories.loadCategories()"
+              <div class="mb-3" style="max-width: 24rem">
+                <label class="form-label mb-0">Category</label>
+                <select
+                  v-model.number="selectedCategoryId"
+                  class="form-select"
+                  :disabled="categories.loading || !categories.categories.length"
                 >
-                  {{ categories.loading ? 'Loading…' : 'Refresh' }}
-                </button>
+                  <option
+                    v-for="c in categories.categories"
+                    :key="c.id"
+                    :value="c.id"
+                  >
+                    {{ c.name }}
+                  </option>
+                </select>
               </div>
-              <p v-if="selectedCategory" class="text-muted small mb-3">
-                {{ selectedCategory.description }}
-              </p>
 
               <div class="app-quiz-options-panel p-3">
                 <h2 class="h6 mb-3 app-section-heading">Quiz options</h2>
@@ -243,44 +226,6 @@ const quizLink = computed(() => ({
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <div
-              v-if="isLoggedIn"
-              class="row row-cols-2 row-cols-sm-4 g-2 mb-4"
-            >
-              <div class="col">
-                <RouterLink
-                  class="btn btn-outline-primary w-100 app-quick-tile"
-                  :to="{ name: 'stats' }"
-                >
-                  Stats
-                </RouterLink>
-              </div>
-              <div class="col">
-                <RouterLink
-                  class="btn btn-outline-primary w-100 app-quick-tile"
-                  :to="{ name: 'challenges' }"
-                >
-                  Challenges
-                </RouterLink>
-              </div>
-              <div class="col">
-                <RouterLink
-                  class="btn btn-outline-primary w-100 app-quick-tile"
-                  :to="{ name: 'notifications' }"
-                >
-                  Alerts
-                </RouterLink>
-              </div>
-              <div class="col">
-                <RouterLink
-                  class="btn btn-outline-primary w-100 app-quick-tile"
-                  :to="{ name: 'profile' }"
-                >
-                  Profile
-                </RouterLink>
               </div>
             </div>
 

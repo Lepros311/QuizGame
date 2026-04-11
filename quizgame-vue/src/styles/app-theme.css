@@ -147,27 +147,6 @@ main .card.shadow-sm::before {
   border-radius: 0.5rem;
 }
 
-/* Quick nav tiles on home */
-.app-quick-tile.btn-outline-primary {
-  border-width: 2px;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    background-color 0.15s ease;
-}
-
-.app-quick-tile.btn-outline-primary:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 0.35rem 0.85rem rgba(99, 102, 241, 0.22),
-    0 0 0 1px var(--app-yellow-soft);
-  background: linear-gradient(
-    180deg,
-    rgba(99, 102, 241, 0.07),
-    var(--app-yellow-soft)
-  );
-}
-
 /* Primary CTA emphasis */
 .app-cta-primary {
   box-shadow:

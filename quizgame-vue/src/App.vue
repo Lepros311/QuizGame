@@ -80,41 +80,51 @@ function onSignOutClick() {
 
 <template>
   <header class="app-site-header">
-    <nav class="navbar navbar-expand container py-2">
-      <RouterLink to="/" class="navbar-brand fw-bold me-auto">
-        QuizGame Vue
-      </RouterLink>
+    <nav class="navbar container py-2 px-3">
       <div
-        v-if="isLoggedIn"
-        class="d-flex flex-wrap align-items-center justify-content-end gap-2 gap-sm-3 ms-auto"
+        class="d-flex align-items-center justify-content-between w-100 gap-3"
       >
-        <div class="d-flex flex-wrap align-items-center gap-1">
+        <div
+          class="d-flex align-items-center gap-2 gap-sm-3 min-w-0 flex-nowrap"
+        >
           <RouterLink
-            class="btn btn-sm btn-link py-1"
-            :to="{ name: 'stats' }"
+            to="/"
+            class="navbar-brand fw-bold mb-0 py-0 text-nowrap flex-shrink-0"
           >
-            Stats
+            Quiz Game
           </RouterLink>
-          <RouterLink
-            class="btn btn-sm btn-link py-1"
-            :to="{ name: 'challenges' }"
+          <div
+            v-if="isLoggedIn"
+            class="d-flex align-items-center gap-1 flex-shrink-0"
           >
-            Challenges
-          </RouterLink>
-          <RouterLink
-            class="btn btn-sm btn-link py-1"
-            :to="{ name: 'notifications' }"
-          >
-            Alerts
-            <span
-              v-if="unreadCount > 0"
-              class="badge rounded-pill text-bg-danger ms-1"
+            <RouterLink
+              class="btn btn-sm btn-link py-1 text-nowrap"
+              :to="{ name: 'stats' }"
             >
-              {{ unreadCount }}
-            </span>
-          </RouterLink>
+              Stats
+            </RouterLink>
+            <RouterLink
+              class="btn btn-sm btn-link py-1 text-nowrap"
+              :to="{ name: 'challenges' }"
+            >
+              Challenges
+            </RouterLink>
+            <RouterLink
+              class="btn btn-sm btn-link py-1 text-nowrap"
+              :to="{ name: 'notifications' }"
+            >
+              Alerts
+              <span
+                v-if="unreadCount > 0"
+                class="badge rounded-pill text-bg-danger ms-1"
+              >
+                {{ unreadCount }}
+              </span>
+            </RouterLink>
+          </div>
         </div>
-        <div class="dropdown flex-shrink-0">
+
+        <div v-if="isLoggedIn" class="dropdown flex-shrink-0">
           <button
             id="navbar-user-menu"
             ref="userMenuToggleRef"
@@ -153,11 +163,10 @@ function onSignOutClick() {
             </li>
           </ul>
         </div>
-      </div>
-      <div
-        v-else-if="showSignInInNav"
-        class="d-flex flex-wrap align-items-center gap-2 ms-auto"
-      >
+        <div
+          v-else-if="showSignInInNav"
+          class="d-flex align-items-center gap-2 flex-shrink-0"
+        >
           <RouterLink
             class="btn btn-sm btn-outline-primary"
             :to="{ name: 'register' }"
@@ -170,6 +179,7 @@ function onSignOutClick() {
           >
             Sign in
           </RouterLink>
+        </div>
       </div>
     </nav>
   </header>
