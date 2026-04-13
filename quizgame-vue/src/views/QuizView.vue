@@ -10,6 +10,7 @@ import {
 import { useQuizStore } from '../stores/quiz'
 import { useCategoryStore } from '../stores/category'
 import { useToastStore } from '../stores/toast'
+import type { QuestionDto } from '../types/api'
 
 const route = useRoute()
 const quiz = useQuizStore()
@@ -108,6 +109,24 @@ const isTrueFalse = computed(() => {
 
 /** True while answers are being posted — used to dim/disable the question UI */
 const isSubmitting = computed(() => phase.value === 'submitting')
+
+function questionTypeLabel(type: number): string {
+  if (type === 0) return 'Multiple choice'
+  if (type === 1) return 'True / false'
+  if (type === 2) return 'Short answer'
+  return 'Question'
+}
+
+function formatSubmittedAnswer(q: QuestionDto, raw: string | null | undefined): string {
+  if (raw == null || !String(raw).trim()) return '—'
+  const s = String(raw).trim()
+  if (q.questionType === 1) {
+    const low = s.toLowerCase()
+    if (low === 'true') return 'True'
+    if (low === 'false') return 'False'
+  }
+  return s
+}
 
 onMounted(() => {
   if (isChallengePlay.value) {
@@ -213,34 +232,31 @@ onMounted(() => {
               </fieldset>
 
               <div
-                v-if="isSubmitting"
-                class="d-flex align-items-center gap-2 text-muted small mb-3"
+                class="d-flex flex-wrap gap-2 justify-content-between align-items-center"
               >
-                <div
-                  class="spinner-border spinner-border-sm text-primary"
-                  role="status"
-                >
-                  <span class="visually-hidden">Submitting</span>
-                </div>
-                <span>Submitting answers…</span>
-              </div>
-
-              <div class="d-grid gap-2 d-md-flex">
+                <RouterLink to="/" class="btn btn-outline-secondary">Home</RouterLink>
+                <template v-if="isSubmitting">
+                  <div
+                    class="d-inline-flex align-items-center gap-2 rounded-2 border border-primary-subtle bg-primary-subtle px-3 py-2 min-w-0"
+                    role="status"
+                  >
+                    <span
+                      class="spinner-border spinner-border-sm text-primary flex-shrink-0"
+                      aria-hidden="true"
+                    />
+                    <span class="fw-semibold text-primary-emphasis"
+                      >Submitting answers…</span
+                    >
+                  </div>
+                </template>
                 <button
+                  v-else
                   type="button"
                   class="btn btn-primary app-cta-primary d-inline-flex align-items-center justify-content-center fw-semibold"
-                  :disabled="isSubmitting"
                   @click="quiz.goNext()"
                 >
-                  <span
-                    v-if="isSubmitting"
-                    class="spinner-border spinner-border-sm me-2"
-                    role="status"
-                    aria-hidden="true"
-                  />
                   {{ quiz.isLastQuestion ? 'Finish' : 'Next' }}
                 </button>
-                <RouterLink to="/" class="btn btn-outline-secondary">Home</RouterLink>
               </div>
             </div>
 
@@ -250,6 +266,53 @@ onMounted(() => {
                 Score: {{ quiz.quiz.score }} /
                 {{ quiz.quiz.questions.length }}
               </p>
+
+              <h3 class="h6 text-secondary mb-3">Review</h3>
+              <ul class="list-unstyled quiz-results-list mb-4">
+                <li
+                  v-for="(q, idx) in quiz.quiz.questions"
+                  :key="q.id"
+                  class="quiz-results-item rounded border p-3 mb-3"
+                >
+                  <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2 mb-2">
+                    <span class="small text-muted"
+                      >Question {{ idx + 1 }} ·
+                      {{ questionTypeLabel(q.questionType) }}</span
+                    >
+                    <span
+                      v-if="q.isCorrect === true"
+                      class="badge rounded-pill text-bg-success"
+                      >Correct</span
+                    >
+                    <span
+                      v-else-if="q.isCorrect === false"
+                      class="badge rounded-pill text-bg-danger"
+                      >Incorrect</span
+                    >
+                  </div>
+                  <p class="fw-semibold mb-2 mb-md-3">{{ q.text }}</p>
+                  <p class="mb-0 small">
+                    <span class="text-secondary">Your answer:</span>
+                    <span class="ms-1 text-break">{{
+                      formatSubmittedAnswer(q, q.userAnswer)
+                    }}</span>
+                  </p>
+                  <p
+                    v-if="
+                      q.isCorrect === false &&
+                      q.correctAnswer != null &&
+                      String(q.correctAnswer).trim() !== ''
+                    "
+                    class="mb-0 small mt-2"
+                  >
+                    <span class="text-secondary">Correct answer:</span>
+                    <span class="ms-1 text-break fw-medium">{{
+                      formatSubmittedAnswer(q, q.correctAnswer)
+                    }}</span>
+                  </p>
+                </li>
+              </ul>
+
               <div class="d-grid gap-2 d-md-flex">
                 <RouterLink
                   v-if="challengeId != null"

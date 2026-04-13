@@ -10,4 +10,6 @@ public class QuestionDto
     public List<string> Options { get; set; } = [];
     public string? UserAnswer { get; set; }
     public bool? IsCorrect { get; set; }
+    /// <summary>Populated after grading for review (e.g. results screen).</summary>
+    public string? CorrectAnswer { get; set; }
 }

@@ -12,6 +12,8 @@ export type QuestionDto = {
   options: string[]
   userAnswer: string | null
   isCorrect: boolean | null
+  /** Present after grading when the API includes it for review */
+  correctAnswer?: string | null
 }
 
 export type QuizDto = {

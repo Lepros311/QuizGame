@@ -48,7 +48,7 @@ body {
     var(--app-yellow-rich) 72%,
     var(--app-brand-to) 100%
   );
-  border-bottom: none;
+  border: 0 !important;
   box-shadow:
     0 4px 18px rgba(79, 70, 229, 0.3),
     0 2px 0 rgba(250, 204, 21, 0.45);
@@ -58,6 +58,9 @@ body {
   --bs-navbar-color: rgba(255, 255, 255, 0.92);
   --bs-navbar-hover-color: #fff;
   --bs-navbar-active-color: #fff;
+  /* Bootswatch Sketchy draws a heavy navbar border by default */
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 .app-site-header .navbar-brand {

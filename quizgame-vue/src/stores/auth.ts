@@ -12,6 +12,8 @@ export const useAuthStore = defineStore('auth', {
     token: null as string | null,
     /** Display name from GET /api/user/me */
     username: null as string | null,
+    /** Email from GET /api/user/me */
+    email: null as string | null,
     userId: null as string | null,
   }),
   getters: {
@@ -43,6 +45,7 @@ export const useAuthStore = defineStore('auth', {
     clearToken() {
       this.token = null
       this.username = null
+      this.email = null
       this.userId = null
       localStorage.removeItem(STORAGE_KEY)
       delete apiClient.defaults.headers.common.Authorization
@@ -51,15 +54,18 @@ export const useAuthStore = defineStore('auth', {
     async fetchMe() {
       if (!this.token?.trim()) {
         this.username = null
+        this.email = null
         this.userId = null
         return
       }
       try {
         const me = await fetchCurrentUser()
         this.username = me.username
+        this.email = me.email
         this.userId = me.userId
       } catch {
         this.username = null
+        this.email = null
         this.userId = null
       }
     },

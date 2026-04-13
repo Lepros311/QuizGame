@@ -36,7 +36,8 @@ public static class MappingExtensions
             QuestionType = question.QuestionType,
             Options = question.Options,
             UserAnswer = question.UserAnswer,
-            IsCorrect = question.IsCorrect
+            IsCorrect = question.IsCorrect,
+            CorrectAnswer = includeCorrectAnswer ? question.CorrectAnswer : null
         };
     }
 
@@ -55,7 +56,9 @@ public static class MappingExtensions
             StartedAt = quiz.StartedAt,
             CompletedAt = quiz.CompletedAt,
             Score = quiz.Score,
-            Questions = quiz.Questions.Select(q => q.ToDto()).ToList()
+            Questions = quiz.Questions
+                .Select(q => q.ToDto(includeCorrectAnswer: q.IsCorrect != null))
+                .ToList()
         };
     }
 

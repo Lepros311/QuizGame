@@ -87,21 +87,21 @@ const quizLink = computed(() => ({
   <div class="home-page">
     <!-- Landing experience for visitors -->
     <template v-if="!isLoggedIn">
-      <section class="home-hero position-relative" aria-labelledby="home-hero-heading">
+      <section class="home-hero position-relative text-center" aria-labelledby="home-hero-heading">
         <div class="home-hero-decor" aria-hidden="true" />
-        <div class="container position-relative py-5 py-lg-6">
-          <div class="row align-items-center g-4 g-lg-5">
-            <div class="col-lg-7">
-              <p class="home-eyebrow mb-2">The C# Academy · Quiz Game</p>
-              <h1 id="home-hero-heading" class="home-hero-title display-4 fw-bold mb-3">
+        <div class="container position-relative py-4 py-lg-5">
+          <div class="row g-3 justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-9">
+              <p class="home-hero-brand mb-2 mb-lg-3">Quiz Game</p>
+              <h1 id="home-hero-heading" class="home-hero-title display-4 fw-bold mb-2">
                 Learn fast. Play smarter.
               </h1>
-              <p class="lead home-hero-lead mb-4">
+              <p class="lead home-hero-lead mx-auto mb-3">
                 Bite-sized quizzes, friendly challenges, and stats that show how
-                you are improving—built for curious learners who like a little
+                you're improving—built for curious learners who like a little
                 competition.
               </p>
-              <div class="d-flex flex-wrap gap-3 mb-2">
+              <div class="d-flex flex-wrap gap-2 justify-content-center">
                 <RouterLink
                   class="btn btn-primary btn-lg app-cta-primary fw-semibold px-4"
                   :to="{ name: 'register' }"
@@ -115,57 +115,27 @@ const quizLink = computed(() => ({
                   Sign in
                 </RouterLink>
               </div>
-              <p class="home-hero-note small mb-0">
-                No clutter—just categories, questions, and your next streak.
-              </p>
-            </div>
-            <div class="col-lg-5">
-              <div class="home-preview card border-0 shadow-lg">
-                <div class="home-preview-header d-flex align-items-center justify-content-between">
-                  <span class="fw-semibold text-secondary small">Sample round</span>
-                  <span class="badge rounded-pill home-preview-badge">Live</span>
-                </div>
-                <div class="home-preview-body">
-                  <p class="home-preview-q mb-3">
-                    Which keyword declares an asynchronous method in C#?
-                  </p>
-                  <div class="d-grid gap-2">
-                    <span class="home-preview-opt">async</span>
-                    <span class="home-preview-opt home-preview-opt--pick">await</span>
-                    <span class="home-preview-opt">task</span>
-                  </div>
-                  <div class="home-preview-footer mt-3 pt-3 d-flex justify-content-between small text-secondary">
-                    <span>Question 3 of 10</span>
-                    <span>Medium · Multiple choice</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="home-features py-5" aria-labelledby="home-features-heading">
+      <section
+        class="home-features py-4"
+        aria-labelledby="home-features-heading"
+      >
         <div class="container">
-          <div class="text-center mb-5 mx-auto" style="max-width: 40rem">
-            <h2 id="home-features-heading" class="h3 fw-bold home-features-title mb-2">
-              Everything you need for a sharper study session
-            </h2>
-            <p class="text-secondary mb-0">
-              Solo practice when you want focus, challenges when you want energy,
-              and notifications so you never miss a rematch.
-            </p>
-          </div>
-          <div class="row g-4">
+          <h2 id="home-features-heading" class="visually-hidden">Features</h2>
+          <div class="row g-3 justify-content-center">
             <div class="col-md-4">
               <article class="home-feature-card h-100">
-                <div class="home-feature-icon mb-3" aria-hidden="true">
+                <div class="home-feature-icon mb-2" aria-hidden="true">
                   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                     <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
                   </svg>
                 </div>
-                <h3 class="h5 fw-bold mb-2">Tailored rounds</h3>
+                <h3 class="h5 fw-bold mb-1">Tailored rounds</h3>
                 <p class="text-secondary small mb-0">
                   Pick categories, difficulty, question count, and formats—multiple
                   choice, true/false, or short answer.
@@ -174,28 +144,28 @@ const quizLink = computed(() => ({
             </div>
             <div class="col-md-4">
               <article class="home-feature-card h-100">
-                <div class="home-feature-icon mb-3" aria-hidden="true">
+                <div class="home-feature-icon mb-2" aria-hidden="true">
                   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
                     <path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"/>
                     <path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
                   </svg>
                 </div>
-                <h3 class="h5 fw-bold mb-2">Challenges &amp; rivalry</h3>
+                <h3 class="h5 fw-bold mb-1">Challenges &amp; rivalry</h3>
                 <p class="text-secondary small mb-0">
-                  Invite friends, compare scores, and keep the conversation going
-                  with alerts when it is your turn.
+                  Challenge friends, compare scores, and keep moving up the leaderboards
+                  with every game played.
                 </p>
               </article>
             </div>
             <div class="col-md-4">
               <article class="home-feature-card h-100">
-                <div class="home-feature-icon mb-3" aria-hidden="true">
+                <div class="home-feature-icon mb-2" aria-hidden="true">
                   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M4 11a1 1 0 1 1 2 0v4a1 1 0 0 1-2 0v-4zm6-4a1 1 0 1 1 2 0v8a1 1 0 0 1-2 0V7zM9 9a1 1 0 0 1 2 0v2a1 1 0 1 1-2 0V9zM1 4a1 1 0 0 1 2 0v10a1 1 0 1 1-2 0V4z"/>
                   </svg>
                 </div>
-                <h3 class="h5 fw-bold mb-2">Stats that motivate</h3>
+                <h3 class="h5 fw-bold mb-1">Stats that motivate</h3>
                 <p class="text-secondary small mb-0">
                   Watch category mastery grow over time and celebrate milestones
                   as your confidence builds.
@@ -206,12 +176,12 @@ const quizLink = computed(() => ({
         </div>
       </section>
 
-      <section class="home-bottom-cta py-5 mb-2" aria-label="Get started">
+      <section class="home-bottom-cta py-4 mb-1" aria-label="Get started">
         <div class="container">
-          <div class="home-bottom-cta-inner text-center px-4 py-5 rounded-4">
+          <div class="home-bottom-cta-inner text-center px-3 py-4 rounded-4">
             <h2 class="h4 fw-bold mb-2">Ready for your first round?</h2>
-            <p class="text-secondary mb-4 mx-auto" style="max-width: 28rem">
-              Create an account to load categories and jump straight into a quiz.
+            <p class="text-secondary mb-3 mx-auto" style="max-width: 28rem">
+              Create an account and start playing today!
             </p>
             <RouterLink
               class="btn btn-primary btn-lg app-cta-primary fw-semibold"
@@ -226,14 +196,13 @@ const quizLink = computed(() => ({
 
     <!-- Signed-in: quick welcome + existing quiz setup -->
     <template v-else>
-      <div class="container py-4">
-        <header class="home-logged-head mb-4">
-          <p class="home-eyebrow home-eyebrow--inline mb-1">Welcome back</p>
+      <div class="container py-3">
+        <header class="home-logged-head mb-3">
           <h1 class="display-6 fw-bold home-logged-title mb-2">
-            Hi, {{ welcomeName }} — let us play.
+            Hi, {{ welcomeName }} — let's play!
           </h1>
           <p class="lead app-lead-tint mb-0">
-            Choose a category, tune your options, and hit start when you are ready.
+            Choose a category, tune your options, and hit start when you're ready.
           </p>
         </header>
 
@@ -291,10 +260,8 @@ const quizLink = computed(() => ({
                           class="form-control form-control-sm"
                         />
                         <span class="form-text small"
-                          >API allows {{ QUIZ_MIN_QUESTION_COUNT }}–{{
-                            QUIZ_MAX_QUESTION_COUNT
-                          }}
-                          questions.</span
+                          >Between {{ QUIZ_MIN_QUESTION_COUNT }} and
+                          {{ QUIZ_MAX_QUESTION_COUNT }}.</span
                         >
                       </div>
                       <div class="col-12">
@@ -414,7 +381,7 @@ const quizLink = computed(() => ({
 }
 
 .home-hero {
-  padding-bottom: 0.5rem;
+  padding-bottom: 0;
 }
 
 .home-hero-decor {
@@ -439,21 +406,20 @@ const quizLink = computed(() => ({
     );
 }
 
-.py-lg-6 {
-  padding-top: 4.5rem !important;
-  padding-bottom: 4.5rem !important;
-}
-
-.home-eyebrow {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #6366f1;
-}
-
-.home-eyebrow--inline {
-  letter-spacing: 0.12em;
+.home-hero-brand {
+  font-size: clamp(2.75rem, 9vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+  background: linear-gradient(
+    115deg,
+    var(--app-brand-from) 0%,
+    var(--app-brand-via) 42%,
+    var(--app-brand-to) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .home-hero-title {
@@ -476,10 +442,6 @@ const quizLink = computed(() => ({
   max-width: 36rem;
 }
 
-.home-hero-note {
-  color: #64748b;
-}
-
 .home-btn-ghost {
   --bs-btn-color: #4338ca;
   --bs-btn-border-color: rgba(67, 56, 202, 0.35);
@@ -492,80 +454,9 @@ const quizLink = computed(() => ({
   font-weight: 600;
 }
 
-.home-preview {
-  border-radius: 1rem;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(10px);
-  box-shadow:
-    0 1.25rem 2.5rem rgba(79, 70, 229, 0.18),
-    0 0 0 1px rgba(255, 255, 255, 0.6) inset !important;
-}
-
-.home-preview-header {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(99, 102, 241, 0.12);
-  background: linear-gradient(
-    90deg,
-    rgba(37, 99, 235, 0.06),
-    rgba(250, 204, 21, 0.12)
-  );
-}
-
-.home-preview-badge {
-  background: linear-gradient(
-    120deg,
-    var(--app-brand-from),
-    var(--app-brand-via)
-  ) !important;
-  color: #fff !important;
-  font-weight: 600;
-  font-size: 0.65rem;
-  padding: 0.35em 0.75em;
-}
-
-.home-preview-body {
-  padding: 1.25rem 1.25rem 1rem;
-}
-
-.home-preview-q {
-  font-weight: 600;
-  color: #334155;
-  font-size: 1.05rem;
-  line-height: 1.45;
-}
-
-.home-preview-opt {
-  display: block;
-  padding: 0.55rem 0.85rem;
-  border-radius: 0.45rem;
-  border: 2px dashed rgba(100, 116, 139, 0.35);
-  color: #64748b;
-  font-size: 0.9rem;
-  background: rgba(248, 250, 252, 0.9);
-}
-
-.home-preview-opt--pick {
-  border-style: solid;
-  border-color: var(--app-yellow-rich);
-  background: var(--app-yellow-soft);
-  color: #422006;
-  font-weight: 600;
-  box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.25);
-}
-
-.home-preview-footer {
-  border-top: 1px dashed rgba(148, 163, 184, 0.5);
-}
-
-.home-features-title {
-  color: #3730a3;
-  letter-spacing: -0.02em;
-}
-
 .home-feature-card {
   border-radius: 0.85rem;
-  padding: 1.5rem 1.35rem;
+  padding: 1.15rem 1.15rem;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(99, 102, 241, 0.14);
   box-shadow:
