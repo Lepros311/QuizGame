@@ -242,4 +242,124 @@ public class StatBoardServiceTests
         var stats = await _statBoardService.GetUserStatsAsync(_userId1);
         Assert.IsTrue(stats.SkillScore > 0);
     }
+
+    /// <summary>
+    /// Win/streak must use score ÷ actual questions on the quiz. If QuestionCount (requested) is larger than
+    /// the generated question list (e.g. Gemini returned fewer), using QuestionCount wrongly marks wins as losses.
+    /// </summary>
+    [TestMethod]
+    public async Task UpdateUserStats_StreakUsesActualQuestionCount_WhenFewerQuestionsThanRequested()
+    {
+        var userId = Guid.NewGuid().ToString();
+        _dbContext.Users.Add(
+            new ApplicationUser { Id = userId, UserName = "streakuser", Email = "streakuser@test.com" });
+        var category = new Category { Id = 99, Name = "StreakCat", Description = "x" };
+        _dbContext.Categories.Add(category);
+        await _dbContext.SaveChangesAsync();
+
+        // 8 questions on the quiz, but QuestionCount still says 10 (requested count). 7/8 = 87.5% → win.
+        var questions = Enumerable.Range(1, 8).Select(i => new Question
+        {
+            Text = $"Q{i}",
+            QuestionType = Core.Enums.QuestionType.MultipleChoice,
+            CorrectAnswer = "A",
+            UserAnswer = i <= 7 ? "A" : "B",
+            IsCorrect = i <= 7,
+            Options = [],
+        }).ToList();
+
+        var quiz = new Quiz
+        {
+            UserId = userId,
+            CategoryId = 99,
+            Difficulty = Core.Enums.Difficulty.Medium,
+            QuestionCount = 10,
+            QuestionTypes = [Core.Enums.QuestionType.MultipleChoice],
+            IsMultiplayer = false,
+            Score = 7,
+            StartedAt = DateTime.UtcNow.AddMinutes(-5),
+            CompletedAt = DateTime.UtcNow,
+            Questions = questions,
+        };
+
+        _dbContext.Quizzes.Add(quiz);
+        await _dbContext.SaveChangesAsync();
+
+        await _statBoardService.UpdateUserStatsAsync(userId, quiz.Id);
+
+        var stats = await _statBoardService.GetUserStatsAsync(userId);
+        Assert.AreEqual(1, stats.CurrentWinStreak, "7/8 correct should count as a win (≥80%).");
+        Assert.AreEqual(1, stats.LongestWinStreak);
+    }
+
+    /// <summary>
+    /// Global rankings are cached per stat board id. Invalidation must remove those keys, not keys by quiz category id.
+    /// Clears the EF change tracker after priming the cache so cached rows are detached snapshots (matches per-request API scopes).
+    /// </summary>
+    [TestMethod]
+    public async Task UpdateUserStats_InvalidatesGlobalRankingsCache_ForAllStatBoards()
+    {
+        const int winStreakBoardId = 2;
+
+        var rankingsPrimed = (await _statBoardService.GetGlobalRankingsAsync(winStreakBoardId)).ToList();
+        var user3Before = rankingsPrimed.First(u => u.UserId == _userId3);
+        Assert.AreEqual(7, user3Before.LongestWinStreak);
+
+        // Detach loaded entities so later DB updates do not mutate cached object graphs (production uses new scopes per request).
+        _dbContext.ChangeTracker.Clear();
+
+        var category = new Category { Id = 99, Name = "CacheCat", Description = "x" };
+        _dbContext.Categories.Add(category);
+
+        var quiz = new Quiz
+        {
+            UserId = _userId3,
+            CategoryId = 99,
+            Difficulty = Core.Enums.Difficulty.Medium,
+            QuestionCount = 3,
+            QuestionTypes = [Core.Enums.QuestionType.MultipleChoice],
+            IsMultiplayer = false,
+            Score = 3,
+            StartedAt = DateTime.UtcNow.AddMinutes(-5),
+            CompletedAt = DateTime.UtcNow,
+            Questions =
+            [
+                new Question
+                {
+                    Text = "Q1",
+                    QuestionType = Core.Enums.QuestionType.MultipleChoice,
+                    CorrectAnswer = "A",
+                    UserAnswer = "A",
+                    IsCorrect = true,
+                    Options = [],
+                },
+                new Question
+                {
+                    Text = "Q2",
+                    QuestionType = Core.Enums.QuestionType.MultipleChoice,
+                    CorrectAnswer = "B",
+                    UserAnswer = "B",
+                    IsCorrect = true,
+                    Options = [],
+                },
+                new Question
+                {
+                    Text = "Q3",
+                    QuestionType = Core.Enums.QuestionType.MultipleChoice,
+                    CorrectAnswer = "C",
+                    UserAnswer = "C",
+                    IsCorrect = true,
+                    Options = [],
+                },
+            ],
+        };
+
+        _dbContext.Quizzes.Add(quiz);
+        await _dbContext.SaveChangesAsync();
+
+        await _statBoardService.UpdateUserStatsAsync(_userId3, quiz.Id);
+
+        var fresh = (await _statBoardService.GetGlobalRankingsAsync(winStreakBoardId)).ToList();
+        Assert.AreEqual(8, fresh.First(u => u.UserId == _userId3).LongestWinStreak);
+    }
 }

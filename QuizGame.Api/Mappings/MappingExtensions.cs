@@ -112,12 +112,16 @@ public static class MappingExtensions
         };
     }
 
-    public static UserStatBoardDto ToDto(this UserStatBoard stats, string username = "")
+    public static UserStatBoardDto ToDto(this UserStatBoard stats, string usernameFallback = "")
     {
+        var username = stats.User?.UserName?.Trim();
+        if (string.IsNullOrEmpty(username))
+            username = usernameFallback;
+
         return new UserStatBoardDto
         {
             UserId = stats.UserId,
-            Username = username,
+            Username = username ?? string.Empty,
             TotalQuizzesCompleted = stats.TotalQuizzesCompleted,
             TotalCorrectAnswers = stats.TotalCorrectAnswers,
             TotalWrongAnswers = stats.TotalWrongAnswers,

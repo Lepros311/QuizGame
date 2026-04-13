@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useStatBoardStore } from '../stores/statboard'
+import type { StatBoardDto, UserStatBoardDto } from '../types/api'
 
 const statboard = useStatBoardStore()
 const {
@@ -14,6 +15,53 @@ const {
   loadingMyStats,
   loadingRankings,
 } = storeToRefs(statboard)
+
+/** Must match StatBoardConstants / API StatBoard.Name */
+function rankingColumnForBoard(
+  board: StatBoardDto | undefined,
+): { label: string; format: (row: UserStatBoardDto) => string } {
+  const name = board?.name ?? ''
+  switch (name) {
+    case 'Top Scores':
+      return {
+        label: 'Highest score',
+        format: (r) => String(r.highestScore),
+      }
+    case 'Win Streaks':
+      return {
+        label: 'Longest streak',
+        format: (r) => String(r.longestWinStreak),
+      }
+    case 'Fastest Completions':
+      return {
+        label: 'Fastest (sec)',
+        format: (r) =>
+          r.fastestCompletionSeconds > 0
+            ? r.fastestCompletionSeconds.toFixed(1)
+            : '—',
+      }
+    case 'Most Challenges Won':
+      return {
+        label: 'Challenge wins',
+        format: (r) => String(r.totalChallengesWon),
+      }
+    case 'Most Quizzes Completed':
+      return {
+        label: 'Quizzes done',
+        format: (r) => String(r.totalQuizzesCompleted),
+      }
+    default:
+      return {
+        label: 'Skill',
+        format: (r) => r.skillScore.toFixed(1),
+      }
+  }
+}
+
+const selectedBoard = computed(() =>
+  boards.value.find((b) => b.id === selectedBoardId.value),
+)
+const rankingColumn = computed(() => rankingColumnForBoard(selectedBoard.value))
 
 onMounted(async () => {
   await Promise.all([statboard.loadBoards(), statboard.loadMyStats()])
@@ -94,7 +142,7 @@ watch(selectedBoardId, () => {
                   <tr>
                     <th>#</th>
                     <th>User</th>
-                    <th>Skill</th>
+                    <th>{{ rankingColumn.label }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -104,7 +152,7 @@ watch(selectedBoardId, () => {
                   >
                     <td>{{ idx + 1 }}</td>
                     <td>{{ row.username }}</td>
-                    <td>{{ row.skillScore.toFixed(1) }}</td>
+                    <td>{{ rankingColumn.format(row) }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -124,7 +172,7 @@ watch(selectedBoardId, () => {
                   <tr>
                     <th>#</th>
                     <th>User</th>
-                    <th>Skill</th>
+                    <th>{{ rankingColumn.label }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -134,7 +182,7 @@ watch(selectedBoardId, () => {
                   >
                     <td>{{ idx + 1 }}</td>
                     <td>{{ row.username }}</td>
-                    <td>{{ row.skillScore.toFixed(1) }}</td>
+                    <td>{{ rankingColumn.format(row) }}</td>
                   </tr>
                 </tbody>
               </table>

@@ -6,6 +6,7 @@ import { storeToRefs } from 'pinia'
 import {
   QUIZ_MAX_QUESTION_COUNT,
   QUIZ_MIN_QUESTION_COUNT,
+  WIN_THRESHOLD_PERCENTAGE,
 } from '../gameConstants'
 import { useQuizStore } from '../stores/quiz'
 import { useCategoryStore } from '../stores/category'
@@ -173,10 +174,20 @@ onMounted(() => {
                 currentQuestion
               "
             >
-              <p class="text-muted small mb-1">
-                Question {{ quiz.currentIndex + 1 }} /
-                {{ quiz.quiz?.questions.length ?? 0 }}
-              </p>
+              <div
+                class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3"
+              >
+                <p class="text-muted small mb-0">
+                  Question {{ quiz.currentIndex + 1 }} /
+                  {{ quiz.quiz?.questions.length ?? 0 }}
+                </p>
+                <p
+                  v-if="!isChallengePlay"
+                  class="small text-secondary mb-0 text-end"
+                >
+                  Score {{ WIN_THRESHOLD_PERCENTAGE }}% or higher to win
+                </p>
+              </div>
               <h2 class="h4 mb-3">{{ currentQuestion.text }}</h2>
 
               <!-- fieldset disabled grays out controls while submitting -->

@@ -41,6 +41,7 @@ public class StatBoardService : IStatBoardService
     public async Task<UserStatBoard> GetUserStatsAsync(string userId)
     {
         var stats = await _context.UserStatBoards
+            .Include(u => u.User)
             .FirstOrDefaultAsync(u => u.UserId == userId);
 
         if (stats == null)
@@ -64,7 +65,8 @@ public class StatBoardService : IStatBoardService
         }
 
         var stats = await GetOrCreateUserStatBoardAsync(userId);
-        var scorePercentage = CalculateScorePercentage(quiz.Score, quiz.QuestionCount);
+        // Use actual questions on the quiz, not QuestionCount — generator may return fewer than requested.
+        var scorePercentage = CalculateQuizScorePercentage(quiz);
 
         UpdatePerformanceStats(stats, quiz, scorePercentage);
         UpdateSpeedStats(stats, quiz);
@@ -79,7 +81,8 @@ public class StatBoardService : IStatBoardService
         stats.LastUpdated = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
-        _cache.Remove($"{GlobalRankingsCacheKeyPrefix}{quiz.CategoryId}");
+        // Rankings are keyed by stat board id (see GetGlobalRankingsAsync), not category id — must clear every board.
+        await InvalidateGlobalRankingsCachesAsync();
     }
 
     public async Task<IEnumerable<UserStatBoard>> GetGlobalRankingsAsync(int statBoardId)
@@ -98,7 +101,9 @@ public class StatBoardService : IStatBoardService
             throw new ArgumentException("StatBoard not found.", nameof(statBoardId));
         }
 
-        var rankings = await GetRankingsQueryAsync(_context.UserStatBoards.AsQueryable(), statBoard.Name);
+        var rankings = await GetRankingsQueryAsync(
+            _context.UserStatBoards.Include(u => u.User),
+            statBoard.Name);
         _cache.Set(cacheKey, rankings);
         return rankings;
     }
@@ -118,13 +123,25 @@ public class StatBoardService : IStatBoardService
         }
 
         var query = _context.UserStatBoards
-            .Where(u => followingIds.Contains(u.UserId))
-            .AsQueryable();
+            .Include(u => u.User)
+            .Where(u => followingIds.Contains(u.UserId));
 
         return await GetRankingsQueryAsync(query, statBoard.Name);
     }
 
     // *** PRIVATE HELPER METHODS ***
+
+    private async Task InvalidateGlobalRankingsCachesAsync()
+    {
+        var statBoardIds = await _context.StatBoards
+            .AsNoTracking()
+            .Select(s => s.Id)
+            .ToListAsync();
+        foreach (var id in statBoardIds)
+        {
+            _cache.Remove($"{GlobalRankingsCacheKeyPrefix}{id}");
+        }
+    }
 
     private async Task<UserStatBoard> GetOrCreateUserStatBoardAsync(string userId)
     {
@@ -140,9 +157,11 @@ public class StatBoardService : IStatBoardService
         return stats;
     }
 
-    private static double CalculateScorePercentage(int score, int questionCount)
+    /// <summary>Percentage correct for this quiz (score / number of questions). Matches what players expect for "80% to win".</summary>
+    private static double CalculateQuizScorePercentage(Quiz quiz)
     {
-        return questionCount > 0 ? (double)score / questionCount * 100 : 0;
+        var n = quiz.Questions.Count;
+        return n > 0 ? (double)quiz.Score / n * 100 : 0;
     }
 
     private static void UpdatePerformanceStats(UserStatBoard stats, Quiz quiz, double scorePercentage)
