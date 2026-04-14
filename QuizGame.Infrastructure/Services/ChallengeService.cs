@@ -40,11 +40,19 @@ public class ChallengeService : IChallengeService
             QuizId = quiz.Id,
             Status = ChallengeStatus.Pending,
             CreatedAt = DateTime.UtcNow,
-            Participants = opponentIds.Select(opponentId => new ChallengeParticipant
-            {
-                UserId = opponentId,
-                Status = ParticipantStatus.Pending
-            }).ToList()
+            Participants =
+            [
+                new ChallengeParticipant
+                {
+                    UserId = challengerId,
+                    Status = ParticipantStatus.Accepted,
+                },
+                .. opponentIds.Select(opponentId => new ChallengeParticipant
+                {
+                    UserId = opponentId,
+                    Status = ParticipantStatus.Pending,
+                }),
+            ],
         };
 
         _context.Challenges.Add(challenge);
@@ -195,23 +203,6 @@ public class ChallengeService : IChallengeService
             challenge.CompletedAt = DateTime.UtcNow;
 
             var winnerScore = challenge.Participants.Max(p => p.Score ?? 0);
-            var challengerStats = await _context.UserStatBoards
-                .FirstOrDefaultAsync(u => u.UserId == challenge.ChallengerId);
-
-            if (challengerStats != null)
-            {
-                var challengerParticipant = challenge.Participants
-                    .FirstOrDefault(p => p.UserId == challenge.ChallengerId);
-
-                if (challengerParticipant?.Score == winnerScore)
-                {
-                    challengerStats.TotalChallengesWon++;
-                }
-                else
-                {
-                    challengerStats.TotalChallengesLost++;
-                }
-            }
 
             foreach (var completedParticipant in challenge.Participants)
             {

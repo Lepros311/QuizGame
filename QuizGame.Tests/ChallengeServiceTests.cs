@@ -95,7 +95,10 @@ public class ChallengeServiceTests
         Assert.IsNotNull(challenge);
         Assert.IsTrue(challenge.Id > 0);
         Assert.AreEqual(_challengerId, challenge.ChallengerId);
-        Assert.AreEqual(1, challenge.Participants.Count);
+        Assert.AreEqual(2, challenge.Participants.Count);
+        Assert.IsTrue(
+            challenge.Participants.Any(p =>
+                p.UserId == _challengerId && p.Status == ParticipantStatus.Accepted));
         Assert.AreEqual(ChallengeStatus.Pending, challenge.Status);
     }
 
@@ -156,7 +159,7 @@ public class ChallengeServiceTests
         // Assert
         Assert.IsNotNull(result);
         Assert.AreEqual(challenge.Id, result.Id);
-        Assert.AreEqual(1, result.Participants.Count);
+        Assert.AreEqual(2, result.Participants.Count);
     }
 
     [TestMethod]
@@ -257,13 +260,19 @@ public class ChallengeServiceTests
         await _challengeService.AcceptChallengeAsync(challenge.Id, _opponentId);
 
         var fullChallenge = await _challengeService.GetChallengeAsync(challenge.Id);
-        var answers = new Dictionary<int, string>();
-        answers[fullChallenge!.Quiz.Questions[0].Id] = "4";
+        var answers = new Dictionary<int, string>
+        {
+            [fullChallenge!.Quiz.Questions[0].Id] = "4",
+        };
 
-        // Act
-        var result = await _challengeService.SubmitChallengeAnswersAsync(
+        // Act — both challenger and opponent must submit before the challenge completes.
+        await _challengeService.SubmitChallengeAnswersAsync(
             challenge.Id,
             _opponentId,
+            answers);
+        var result = await _challengeService.SubmitChallengeAnswersAsync(
+            challenge.Id,
+            _challengerId,
             answers);
 
         // Assert

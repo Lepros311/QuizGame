@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import {
   QUIZ_MAX_QUESTION_COUNT,
@@ -11,6 +12,7 @@ import { useAuthStore } from '../stores/auth'
 import { useCategoryStore } from '../stores/category'
 import { useChallengeStore } from '../stores/challenge'
 
+const route = useRoute()
 const auth = useAuthStore()
 const categories = useCategoryStore()
 const challenges = useChallengeStore()
@@ -32,11 +34,29 @@ const questionTypesTf = ref(false)
 const questionTypesShort = ref(false)
 const creating = ref(false)
 
+function applyCategoryFromRouteQuery() {
+  const raw = route.query.categoryId
+  const s = Array.isArray(raw) ? raw[0] : raw
+  const n = Number(s)
+  if (!Number.isFinite(n)) return
+  if (categories.categories.some((c) => c.id === n)) {
+    categoryId.value = n
+  }
+}
+
 onMounted(async () => {
   await categories.loadCategories()
   if (categories.categories[0]) categoryId.value = categories.categories[0].id
+  applyCategoryFromRouteQuery()
   await challenges.loadAll()
 })
+
+watch(
+  () => route.query.categoryId,
+  () => {
+    if (categories.categories.length) applyCategoryFromRouteQuery()
+  },
+)
 
 const myParticipant = (c: ChallengeDto) =>
   c.participants.find((p) => p.userId === userId.value)

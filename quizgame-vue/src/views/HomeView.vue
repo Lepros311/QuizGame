@@ -78,8 +78,17 @@ const quizLink = computed(() => ({
     difficulty: difficulty.value,
     questionCount: questionCount.value,
     questionTypes: selectedQuestionTypes.value.join(','),
-    multiplayer: playMode.value === 'multi' ? '1' : '0',
+    multiplayer: '0',
   },
+}))
+
+/** Multiplayer is challenges (invite opponents); solo uses /quiz with options above. */
+const challengesLink = computed(() => ({
+  name: 'challenges' as const,
+  query:
+    selectedCategoryId.value != null
+      ? { categoryId: String(selectedCategoryId.value) }
+      : {},
 }))
 </script>
 
@@ -332,10 +341,16 @@ const quizLink = computed(() => ({
                               value="multi"
                             />
                             <label class="form-check-label" for="home-mode-multi"
-                              >Multiplayer</label
+                              >Multiplayer (challenges)</label
                             >
                           </div>
                         </div>
+                        <p
+                          v-if="playMode === 'multi'"
+                          class="text-secondary small mb-0 mt-2"
+                        >
+                          Invite opponents and compare scores on the Challenges page.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -343,11 +358,18 @@ const quizLink = computed(() => ({
 
                 <div class="d-grid gap-2 d-sm-flex">
                   <RouterLink
-                    v-if="canStartQuiz"
+                    v-if="canStartQuiz && playMode === 'solo'"
                     :to="quizLink"
                     class="btn btn-primary btn-lg app-cta-primary fw-semibold"
                   >
                     Start Quiz
+                  </RouterLink>
+                  <RouterLink
+                    v-else-if="canStartQuiz && playMode === 'multi'"
+                    :to="challengesLink"
+                    class="btn btn-primary btn-lg app-cta-primary fw-semibold"
+                  >
+                    Play with friends
                   </RouterLink>
                   <button
                     v-else-if="selectedCategoryId != null"
